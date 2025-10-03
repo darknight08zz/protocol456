@@ -1,0 +1,50 @@
+/* Paste the full CSS from previous message here */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+
+:root {
+  --black: #000000;
+  --dark-bg: #0A0F14;
+  --neon-red: #FF2A6D;
+  --neon-pink: #FF5E7D;
+  --neon-teal: #00F5D4;
+  --light-gray: #E0E0E0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--dark-bg);
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  overflow-x: hidden;
+}
+
+.neon-text {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--neon-red);
+  text-shadow: 0 0 8px var(--neon-red), 0 0 16px var(--neon-red);
+}
+
+.glow-button {
+  background: transparent;
+  color: var(--neon-red);
+  border: 2px solid var(--neon-red);
+  padding: 12px 28px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 6px var(--neon-red);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.glow-button:hover {
+  background: rgba(255, 42, 109, 0.15);
+  box-shadow: 0 0 12px var(--neon-red);
+  transform: scale(1.05);
+}
