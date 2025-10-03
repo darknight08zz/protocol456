@@ -1,11 +1,12 @@
 // src/components/Footer.jsx
 import React, { useState } from 'react';
-import { FaLinkedin, FaInstagram } from 'react-icons/fa';
+import { FaLinkedin, FaInstagram, FaTwitter } from 'react-icons/fa';
 
 // 🔴 REPLACE WITH YOUR ACTUAL LINKS
 const SOCIAL_LINKS = {
   linkedin: "https://www.linkedin.com/company/your-ieee-branch",
-  instagram: "https://www.instagram.com/your_ieee_handle"
+  instagram: "https://www.instagram.com/your_ieee_handle",
+  x: "https://x.com/ieee_xim"
 };
 
 // 🔴 REPLACE WITH YOUR FORMSPREE ENDPOINT
@@ -43,8 +44,8 @@ export default function Footer() {
   };
 
   return (
-    <footer 
-      style={{ 
+    <footer
+      style={{
         padding: '3rem 2rem 2rem',
         backgroundColor: '#03060a',
         borderTop: '1px solid #1a1a2e',
@@ -52,19 +53,19 @@ export default function Footer() {
         fontFamily: "'Roboto', sans-serif"
       }}
     >
-      <div style={{ 
-        maxWidth: '1200px', 
+      <div style={{
+        maxWidth: '1200px',
         margin: '0 auto',
         display: 'flex',
         flexWrap: 'wrap',
         gap: '2.5rem',
         justifyContent: 'space-between'
       }}>
-        
+
         {/* Contact Form */}
         <div style={{ flex: '1', minWidth: '300px', maxWidth: '500px' }}>
-          <h3 className="neon-text" style={{ 
-            fontSize: '1.6rem', 
+          <h3 className="neon-text" style={{
+            fontSize: '1.6rem',
             marginBottom: '1.2rem',
             fontFamily: "'Orbitron', sans-serif"
           }}>
@@ -139,8 +140,8 @@ export default function Footer() {
 
             {/* Feedback Messages */}
             {status === 'success' && (
-              <p style={{ 
-                color: 'var(--neon-teal)', 
+              <p style={{
+                color: 'var(--neon-teal)',
                 marginTop: '1rem',
                 fontWeight: 'bold'
               }}>
@@ -148,8 +149,8 @@ export default function Footer() {
               </p>
             )}
             {status === 'error' && (
-              <p style={{ 
-                color: 'var(--neon-red)', 
+              <p style={{
+                color: 'var(--neon-red)',
                 marginTop: '1rem'
               }}>
                 ❌ Failed to send. Please try again.
@@ -159,44 +160,46 @@ export default function Footer() {
         </div>
 
         {/* Social + Info */}
-        <div style={{ 
-          flex: '1', 
-          minWidth: '250px', 
+        <div style={{
+          flex: '1',
+          minWidth: '250px',
           display: 'flex',
           flexDirection: 'column',
           gap: '1.8rem'
         }}>
           {/* Social Links */}
           <div>
-            <h3 className="neon-text" style={{ 
-              fontSize: '1.4rem', 
-              marginBottom: '1rem',
-              fontFamily: "'Orbitron', sans-serif"
-            }}>
-              CONNECT
-            </h3>
-            <div style={{ 
-              display: 'flex', 
+            <div style={{
+              display: 'flex',
               gap: '1.2rem',
               fontSize: '2rem'
             }}>
-              <a 
-                href={SOCIAL_LINKS.linkedin} 
-                target="_blank" 
+              <a
+                href={SOCIAL_LINKS.linkedin}
+                target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: '#0077B5', textDecoration: 'none' }}
                 aria-label="LinkedIn"
               >
                 <FaLinkedin />
               </a>
-              <a 
-                href={SOCIAL_LINKS.instagram} 
-                target="_blank" 
+              <a
+                href={SOCIAL_LINKS.instagram}
+                target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: '#E1306C', textDecoration: 'none' }}
                 aria-label="Instagram"
               >
                 <FaInstagram />
+              </a>
+              <a
+                href={SOCIAL_LINKS.x}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#396cd4ff', textDecoration: 'none' }}  // X uses black
+                aria-label="X (Twitter)"
+              >
+                <FaTwitter />
               </a>
             </div>
           </div>

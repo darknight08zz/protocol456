@@ -73,7 +73,7 @@ export default function Hero() {
           maxWidth: '750px',
           lineHeight: 1.7,
           fontFamily: "'Roboto', sans-serif",
-          fontWeight: 300
+          fontWeight: 700
         }}
       >
         The game begins. Only the sharpest minds survive.
@@ -212,12 +212,10 @@ export default function Hero() {
           }}
         >
           <EventCard
-            day="October 13, 2025"
-            title="ROUND ONE: TRIALS"
+            title="Day 1 - 13 October, 2025"
           />
           <EventCard
-            day="October 18, 2025"
-            title="ROUND TWO: FINAL SHOWDOWN"
+            title="Day 2 - 18 October, 2025"
           />
         </div>
       </div>

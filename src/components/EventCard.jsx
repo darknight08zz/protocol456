@@ -52,7 +52,7 @@ export default function EventCard({ day, title }) {
       </p>
 
       <p style={{ color: '#777', marginTop: '1rem', fontSize: '0.95rem' }}>
-        Details will be revealed soon. Stay alert.
+        Details will be revealed soon. Stay tuned.
       </p>
     </div>
   );
