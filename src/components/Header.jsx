@@ -8,7 +8,7 @@ export default function Header() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        padding: '1rem 2rem', // ← 2rem left/right padding
+        padding: '1rem 2rem',
         backgroundColor: 'rgba(10, 15, 20, 0.85)',
         backdropFilter: 'blur(6px)',
         borderBottom: '1px solid #222',
@@ -20,6 +20,64 @@ export default function Header() {
         boxSizing: 'border-box'
       }}
     >
+      {/* IEEE Main Brand Logo */}
+      <img
+        src={`${process.env.PUBLIC_URL}/ximlogo.png`}
+        alt="IEEE"
+        style={{
+          height: '60px', // 🔴 Set to 60px
+          width: 'auto',   // Auto width to maintain aspect ratio
+          objectFit: 'contain', // Keep proportions
+          borderRadius: '4px',
+          filter: 'drop-shadow(0 0 3px rgba(0, 119, 181, 0.6))',
+          transition: 'filter 0.3s ease'
+        }}
+        onError={(e) => {
+          e.target.style.display = 'none';
+          const fallback = document.createElement('span');
+          fallback.innerText = 'IEEE';
+          fallback.style.color = '#0077B5';
+          fallback.style.fontSize = '0.9rem';
+          fallback.style.fontWeight = 'bold';
+          fallback.style.display = 'inline-block';
+          fallback.style.padding = '4px 8px';
+          fallback.style.borderRadius = '4px';
+          fallback.style.backgroundColor = 'rgba(0, 119, 181, 0.1)';
+          e.target.parentNode.appendChild(fallback);
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 6px rgba(0, 119, 181, 0.8))'}
+        onMouseLeave={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 3px rgba(0, 119, 181, 0.6))'}
+      />
+
+      {/* IEEE Day Logo */}
+      <img
+        src={`${process.env.PUBLIC_URL}/ieee-day.jpg`}
+        alt="IEEE Day"
+        style={{
+          height: '60px', // 🔴 Set to 60px
+          width: 'auto',   // Auto width to maintain aspect ratio
+          objectFit: 'contain', // Keep proportions
+          borderRadius: '4px',
+          filter: 'drop-shadow(0 0 3px rgba(0, 119, 181, 0.6))',
+          transition: 'filter 0.3s ease'
+        }}
+        onError={(e) => {
+          e.target.style.display = 'none';
+          const fallback = document.createElement('span');
+          fallback.innerText = 'IEEE DAY';
+          fallback.style.color = '#0077B5';
+          fallback.style.fontSize = '0.9rem';
+          fallback.style.fontWeight = 'bold';
+          fallback.style.display = 'inline-block';
+          fallback.style.padding = '4px 8px';
+          fallback.style.borderRadius = '4px';
+          fallback.style.backgroundColor = 'rgba(0, 119, 181, 0.1)';
+          e.target.parentNode.appendChild(fallback);
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 6px rgba(0, 119, 181, 0.8))'}
+        onMouseLeave={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 3px rgba(0, 119, 181, 0.6))'}
+      />
+
       {/* Clickable Logo */}
       <a
         href="https://edu.ieee.org/in-ximub/"
@@ -45,8 +103,10 @@ export default function Header() {
           alt="IEEE XIM Student Branch"
           style={{
             height: '60px',
+            width: 'auto',
+            objectFit: 'contain',
             display: 'block',
-            transition: 'none' // animation handled by parent <a>
+            transition: 'none'
           }}
           onError={(e) => {
             e.target.style.display = 'none';

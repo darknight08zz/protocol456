@@ -1,8 +1,9 @@
 // src/components/EventCard.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-export default function EventCard({ day, title }) {
-  return (
+export default function EventCard({ day, title, link, isLive = false }) {
+  const cardContent = (
     <div
       style={{
         backgroundColor: 'rgba(10, 20, 30, 0.6)',
@@ -10,20 +11,20 @@ export default function EventCard({ day, title }) {
         borderRadius: '12px',
         padding: '1.8rem 1.5rem',
         textAlign: 'center',
-        maxWidth: '320px',
-        width: '100%',
-        backdropFilter: 'blur(4px)',
+        cursor: isLive ? 'pointer' : 'not-allowed',
+        opacity: isLive ? 1 : 0.6,
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transition: 'opacity 0.3s',
+        pointerEvents: isLive ? 'auto' : 'none' // 🔑 disables all interaction
       }}
     >
-      {/* "Coming Soon" Badge */}
-      <div
+      <div  
         style={{
           position: 'absolute',
           top: '12px',
           right: '-30px',
-          backgroundColor: 'var(--neon-red)',
+          backgroundColor: isLive ? 'var(--neon-teal)' : 'var(--neon-red)',
           color: 'black',
           padding: '4px 30px',
           transform: 'rotate(45deg)',
@@ -33,7 +34,7 @@ export default function EventCard({ day, title }) {
           letterSpacing: '1px'
         }}
       >
-        COMING SOON
+        {isLive ? 'LIVE NOW' : 'COMING SOON'}
       </div>
 
       <h3
@@ -41,19 +42,29 @@ export default function EventCard({ day, title }) {
         style={{
           fontSize: '1.6rem',
           marginBottom: '1rem',
-          fontFamily: "'Orbitron', sans-serif"
+          fontFamily: "'Orbitron', sans-serif",
+          opacity: isLive ? 1 : 0.7
         }}
       >
         {title}
       </h3>
 
-      <p style={{ color: '#aaa', fontSize: '1.1rem' }}>
+      <p style={{ color: '#aaa', fontSize: '1.1rem', opacity: isLive ? 1 : 0.7 }}>
         {day}
-      </p>
-
-      <p style={{ color: '#777', marginTop: '1rem', fontSize: '0.95rem' }}>
-        Details will be revealed soon. Stay tuned.
       </p>
     </div>
   );
+
+  if (isLive) {
+    return (
+      <Link
+        to={link}
+        style={{ textDecoration: 'none', color: 'inherit', width: '320px' }}
+      >
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return <div style={{ width: '320px' }}>{cardContent}</div>;
 }

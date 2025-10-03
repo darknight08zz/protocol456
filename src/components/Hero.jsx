@@ -191,7 +191,7 @@ export default function Hero() {
       )}
 
       {/* EVENTS SECTION — Updated Dates */}
-      <div style={{ width: '100%', maxWidth: '950px', paddingTop: '2rem', borderTop: '1px solid #222' }}>
+      <div style={{ width: '100%', maxWidth: '950px', paddingTop: '3rem', borderTop: '1px solid #222' }}>
         <h2
           className="neon-text"
           style={{
@@ -211,11 +211,18 @@ export default function Hero() {
             flexWrap: 'wrap'
           }}
         >
+          {/* 🔴 MANUALLY CONTROL HERE */}
           <EventCard
-            title="Day 1 - 13 October, 2025"
+            day="Day 1 • October 13, 2025"
+            title="ROUND ONE: TRIALS"
+            link="/day1"
+            isLive={false} // 👈 CHANGE TO `true` WHEN YOU WANT IT LIVE
           />
           <EventCard
-            title="Day 2 - 18 October, 2025"
+            day="Day 2 • October 18, 2025"
+            title="ROUND TWO: FINAL SHOWDOWN"
+            link="/day2"
+            isLive={false} // 👈 CHANGE TO `true` WHEN YOU WANT IT LIVE
           />
         </div>
       </div>
