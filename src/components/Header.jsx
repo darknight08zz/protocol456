@@ -41,7 +41,7 @@ export default function Header() {
         }}
       >
         <img
-          src={`${process.env.PUBLIC_URL}/ieee-xim-logo.jpeg`}
+          src={`${process.env.PUBLIC_URL}/ieee-xim-logo.jpg`}
           alt="IEEE XIM Student Branch"
           style={{
             height: '60px',

@@ -4,7 +4,7 @@
 :root {
   --black: #000000;
   --dark-bg: #0A0F14;
-  --neon-red: #FF2A6D;
+  --neon-red: #D62246;
   --neon-pink: #FF5E7D;
   --neon-teal: #00F5D4;
   --light-gray: #E0E0E0;
@@ -26,21 +26,27 @@ body {
 .neon-text {
   font-family: 'Orbitron', sans-serif;
   color: var(--neon-red);
-  text-shadow: 0 0 8px var(--neon-red), 0 0 16px var(--neon-red);
+  text-shadow: 0 0 4px rgba(214, 34, 70, 0.5), 0 0 8px rgba(214, 34, 70, 0.3);
 }
 
 .glow-button {
   background: transparent;
   color: var(--neon-red);
-  border: 2px solid var(--neon-red);
+  border: 1.5px solid var(--neon-red);
   padding: 12px 28px;
   font-family: 'Orbitron', sans-serif;
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-shadow: 0 0 6px var(--neon-red);
+  text-shadow: 0 0 4px rgba(214, 34, 70, 0.4);
   text-decoration: none;
   display: inline-block;
+}
+
+.glow-button:hover {
+  background: rgba(214, 34, 70, 0.1);
+  box-shadow: 0 0 8px rgba(214, 34, 70, 0.4);
+  transform: scale(1.03);
 }
 
 .glow-button:hover {

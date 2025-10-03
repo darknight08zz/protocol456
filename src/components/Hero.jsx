@@ -6,8 +6,8 @@ export default function Hero() {
   // 🔴 Registration closes: October 10, 2025 at 23:59:59
   const REGISTRATION_DEADLINE = "2025-10-10T23:59:59";
 
-  // 🔴 REPLACE WITH YOUR ACTUAL REGISTRATION FORM LINK
-  const registrationUrl = "https://forms.gle/YOUR_GOOGLE_FORM_LINK_HERE";
+  // 🔴 Your actual Google Form URL
+  const registrationUrl = "https://docs.google.com/forms/d/e/1FAIpQLSegL9IPAjlbHejKIZcQJQMzc7wFHV9TnLwvlsy75PXOBI0IxA/viewform?usp=header";
 
   const [timeLeft, setTimeLeft] = useState({
     days: '00',
@@ -65,6 +65,7 @@ export default function Hero() {
       }}
     >
       {/* Main Tagline */}
+      {/* Main Tagline */}
       <p
         style={{
           fontSize: '1.8rem',
@@ -75,9 +76,25 @@ export default function Hero() {
           fontWeight: 300
         }}
       >
-        The game begins. Only the sharpest minds survive.  
+        The game begins. Only the sharpest minds survive.
         Are you ready to play?
       </p>
+
+      {/* Short Event Description */}
+      <div
+        style={{
+          maxWidth: '700px',
+          color: '#bbb',
+          fontSize: '1.15rem',
+          lineHeight: 1.6,
+          marginTop: '-0.5rem',
+          marginBottom: '1.5rem',
+          fontStyle: 'italic'
+        }}
+      >
+        An immersive technical event by IEEE XIM Student Branch.
+        Two days. One mission. Will you make it to the end?
+      </div>
 
       {/* Countdown or Closed Message */}
       {isRegistrationOpen ? (
@@ -97,14 +114,15 @@ export default function Hero() {
               <div
                 key={unit}
                 style={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid var(--neon-red)',
+                  backgroundColor: 'rgba(10, 15, 20, 0.6)',
+                  border: '1px solid rgba(214, 34, 70, 0.5)',
                   borderRadius: '8px',
                   padding: '0.8rem 0.5rem',
                   minWidth: '70px',
                   display: 'flex',
                   flexDirection: 'column',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  backdropFilter: 'blur(2px)'
                 }}
               >
                 <div
@@ -139,7 +157,7 @@ export default function Hero() {
             style={{
               fontSize: '2rem',
               fontFamily: "'Orbitron', sans-serif",
-              marginBottom: '1rem'
+              marginBottom: '0.8rem'
             }}
           >
             REGISTRATION CLOSED
@@ -152,24 +170,27 @@ export default function Hero() {
 
       {/* Registration Button or Closed Notice */}
       {isRegistrationOpen ? (
-        <>
-          <a
-            href={registrationUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="glow-button"
-            style={{ display: 'inline-block', padding: '14px 36px', fontSize: '1.2rem' }}
-          >
-            REGISTER NOW
-          </a>
-        </>
+        <a
+          href={registrationUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="glow-button"
+          style={{
+            display: 'inline-block',
+            padding: '14px 36px',
+            fontSize: '1.2rem',
+            textDecoration: 'none'
+          }}
+        >
+          REGISTER NOW
+        </a>
       ) : (
-        <p style={{ color: '#FF5E7D', fontSize: '1.1rem', fontStyle: 'italic' }}>
+        <p style={{ color: 'var(--neon-red)', fontSize: '1.1rem', fontStyle: 'italic' }}>
           Registrations are now closed. See you at the event!
         </p>
       )}
 
-      {/* EVENTS SECTION — Always Visible */}
+      {/* EVENTS SECTION — Updated Dates */}
       <div style={{ width: '100%', maxWidth: '950px', paddingTop: '2rem', borderTop: '1px solid #222' }}>
         <h2
           className="neon-text"
@@ -191,10 +212,12 @@ export default function Hero() {
           }}
         >
           <EventCard
-            title="Day 1 • 13 October, 2025"
+            day="October 13, 2025"
+            title="ROUND ONE: TRIALS"
           />
           <EventCard
-            title="Day 2 • 18 October, 2025"
+            day="October 18, 2025"
+            title="ROUND TWO: FINAL SHOWDOWN"
           />
         </div>
       </div>
