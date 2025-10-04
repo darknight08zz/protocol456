@@ -5,23 +5,32 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  
+
 
   useEffect(() => {
+    let ticking = false;
+
+    const updateScrollState = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsScrolled(true);
+      } else if (currentScrollY < lastScrollY || currentScrollY <= 100) {
+        setIsScrolled(false);
+      }
+      setLastScrollY(currentScrollY);
+      ticking = false;
+    };
+
     const handleScroll = () => {
-      if (typeof window !== 'undefined') {
-        const currentScrollY = window.scrollY;
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          setIsScrolled(true);
-        } else if (currentScrollY < lastScrollY || currentScrollY <= 100) {
-          setIsScrolled(false);
-        }
-        setLastScrollY(currentScrollY);
+      if (!ticking) {
+        requestAnimationFrame(updateScrollState);
+        ticking = true;
       }
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY, setIsScrolled]); // ✅ All dependencies declared
+  }, [lastScrollY]);
 
   // 👇 Dynamic styles based on scroll
   const paddingY = isScrolled ? '0.3rem' : '1rem';
@@ -46,7 +55,9 @@ export default function Header() {
         fontFamily: "'Roboto', sans-serif",
         boxSizing: 'border-box',
         width: '100%',
-        transition: 'padding 0.3s ease'
+        willChange: 'transform, opacity',
+        transform: isScrolled ? 'translateY(-2px)' : 'none', // subtle lift
+        transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), padding 0.35s ease'
       }}
     >
       {/* Logo Row — left-aligned */}
