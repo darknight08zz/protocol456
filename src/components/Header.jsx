@@ -20,16 +20,15 @@ export default function Header() {
         boxSizing: 'border-box'
       }}
     >
-      {/* IEEE Main Brand Logo */}
+      {/* XIM Logo */}
       <img
-        src={`${process.env.PUBLIC_URL}/ximlogo.png`}
-        alt="IEEE"
+        src={`${process.env.PUBLIC_URL}/ximlogo1.png`}
+        alt="XIM"
         style={{
           height: '60px', // 🔴 Set to 60px
           width: 'auto',   // Auto width to maintain aspect ratio
           objectFit: 'contain', // Keep proportions
           borderRadius: '4px',
-          filter: 'drop-shadow(0 0 3px rgba(0, 119, 181, 0.6))',
           transition: 'filter 0.3s ease'
         }}
         onError={(e) => {
@@ -46,19 +45,19 @@ export default function Header() {
           e.target.parentNode.appendChild(fallback);
         }}
         onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 6px rgba(0, 119, 181, 0.8))'}
-        onMouseLeave={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 3px rgba(0, 119, 181, 0.6))'}
+        onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
       />
 
       {/* IEEE Day Logo */}
       <img
-        src={`${process.env.PUBLIC_URL}/ieee-day.jpg`}
+        src={`${process.env.PUBLIC_URL}/ieee-day.png`}
         alt="IEEE Day"
         style={{
           height: '60px', // 🔴 Set to 60px
           width: 'auto',   // Auto width to maintain aspect ratio
           objectFit: 'contain', // Keep proportions
           borderRadius: '4px',
-          filter: 'drop-shadow(0 0 3px rgba(0, 119, 181, 0.6))',
+          
           transition: 'filter 0.3s ease'
         }}
         onError={(e) => {
@@ -75,7 +74,7 @@ export default function Header() {
           e.target.parentNode.appendChild(fallback);
         }}
         onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 6px rgba(0, 119, 181, 0.8))'}
-        onMouseLeave={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 3px rgba(0, 119, 181, 0.6))'}
+        onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
       />
 
       {/* Clickable Logo */}
@@ -95,11 +94,11 @@ export default function Header() {
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.filter = 'drop-shadow(0 0 6px rgba(0, 119, 181, 0.6))';
+          e.currentTarget.style.filter = 'none';
         }}
       >
         <img
-          src={`${process.env.PUBLIC_URL}/ieee-xim-logo.jpg`}
+          src={`${process.env.PUBLIC_URL}/ieee-xim-logo.png`}
           alt="IEEE XIM Student Branch"
           style={{
             height: '60px',
