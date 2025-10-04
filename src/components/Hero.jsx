@@ -383,14 +383,14 @@ export default function Hero() {
           }}
         >
           <EventCard
-            day="Day 1 • October 13, 2025"
-            title={<><span>ROUND ONE:</span><br />THE BEGINNING</>}
+            day="October 13, 2025"
+            title={<><span>DAY ONE:</span><br />THE INITIAL PROTOCOL</>}
             link="/day1"
             isLive={false}
           />
           <EventCard
-            day="Day 2 • October 18, 2025"
-            title={<><span>ROUND TWO:</span><br />FINAL SHOWDOWN</>}
+            day="October 18, 2025"
+            title={<><span>DAY TWO:</span><br />THE FINAL PROTOCOL</>}
             link="/day2"
             isLive={false}
           />

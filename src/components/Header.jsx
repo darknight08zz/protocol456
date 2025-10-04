@@ -1,14 +1,42 @@
 // src/components/Header.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Header() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (typeof window !== 'undefined') {
+        const currentScrollY = window.scrollY;
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+          setIsScrolled(true);
+        } else if (currentScrollY < lastScrollY || currentScrollY <= 100) {
+          setIsScrolled(false);
+        }
+        setLastScrollY(currentScrollY);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY, setIsScrolled]); // ✅ All dependencies declared
+
+  // 👇 Dynamic styles based on scroll
+  const paddingY = isScrolled ? '0.3rem' : '1rem';
+  const titleFontSize = isScrolled ? '1.6rem' : '2.3rem';
+  const subtitleFontSize = isScrolled ? '0.95rem' : '1.25rem';
+  const logoHeightXIM = isScrolled ? '70px' : '120px'; // Only XIM logo scales (others stay readable)
+  const logoHeightOthers = isScrolled ? '36px' : '60px';
+
   return (
     <header
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
-        padding: '1rem 2rem',
+        padding: `${paddingY} 2rem`,
         backgroundColor: 'rgba(10, 15, 20, 0.85)',
         backdropFilter: 'blur(6px)',
         borderBottom: '1px solid #222',
@@ -17,21 +45,28 @@ export default function Header() {
         zIndex: 100,
         fontFamily: "'Roboto', sans-serif",
         boxSizing: 'border-box',
-        width: '100%'
+        width: '100%',
+        transition: 'padding 0.3s ease'
       }}
     >
       {/* Logo Row — left-aligned */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '0.2rem' }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: isScrolled ? '12px' : '16px',
+        marginBottom: isScrolled ? '0.1rem' : '0.2rem',
+        transition: 'gap 0.3s ease'
+      }}>
         {/* XIM University Logo */}
         <img
           src={`${process.env.PUBLIC_URL}/ximlogo1.png`}
           alt="XIM University"
           style={{
-            height: '60px',
+            height: logoHeightOthers,
             width: 'auto',
             objectFit: 'contain',
             borderRadius: '4px',
-            transition: 'filter 0.3s ease'
+            transition: 'height 0.3s ease, filter 0.3s ease'
           }}
           onError={(e) => {
             e.target.style.display = 'none';
@@ -39,7 +74,7 @@ export default function Header() {
             fallback.textContent = 'XIM';
             Object.assign(fallback.style, {
               color: '#0077B5',
-              fontSize: '0.9rem',
+              fontSize: isScrolled ? '0.8rem' : '0.9rem',
               fontWeight: 'bold',
               display: 'inline-block',
               padding: '4px 8px',
@@ -76,11 +111,11 @@ export default function Header() {
             src={`${process.env.PUBLIC_URL}/ieee-day.png`}
             alt="IEEE Day"
             style={{
-              height: '60px',
+              height: logoHeightOthers,
               width: 'auto',
               objectFit: 'contain',
               borderRadius: '4px',
-              transition: 'filter 0.3s ease'
+              transition: 'height 0.3s ease, filter 0.3s ease'
             }}
             onError={(e) => {
               e.target.style.display = 'none';
@@ -88,7 +123,7 @@ export default function Header() {
               fallback.textContent = 'IEEE DAY';
               Object.assign(fallback.style, {
                 color: '#0077B5',
-                fontSize: '0.9rem',
+                fontSize: isScrolled ? '0.8rem' : '0.9rem',
                 fontWeight: 'bold',
                 display: 'inline-block',
                 padding: '4px 8px',
@@ -126,10 +161,12 @@ export default function Header() {
             src={`${process.env.PUBLIC_URL}/ieee-xim-logo.png`}
             alt="IEEE XIM Student Branch"
             style={{
-              height: '120px',
-              width: '120px',
+              height: logoHeightXIM,
+              width: 'auto',
+              maxWidth: isScrolled ? '100px' : '120px',
               objectFit: 'contain',
-              display: 'block'
+              display: 'block',
+              transition: 'height 0.3s ease, max-width 0.3s ease'
             }}
             onError={(e) => {
               e.target.style.display = 'none';
@@ -137,7 +174,7 @@ export default function Header() {
               fallback.textContent = 'IEEE XIM';
               Object.assign(fallback.style, {
                 color: '#0077B5',
-                fontSize: '1.1rem',
+                fontSize: isScrolled ? '1.0rem' : '1.1rem',
                 fontWeight: 'bold',
                 display: 'inline-block',
                 padding: '8px 12px',
@@ -155,16 +192,18 @@ export default function Header() {
         style={{
           alignSelf: 'center',
           textAlign: 'center',
-          marginTop: '0.1rem'
+          marginTop: isScrolled ? '0.05rem' : '0.1rem',
+          transition: 'margin-top 0.3s ease'
         }}
       >
         <p
           style={{
-            fontSize: '1.25rem', // 🔺 INCREASED TEXT SIZE HERE (was 1.15rem)
+            fontSize: subtitleFontSize,
             color: '#ccc',
             margin: '0 0 0.15rem',
             fontWeight: 300,
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            transition: 'font-size 0.3s ease'
           }}
         >
           IEEE XIM Student Branch Presents
@@ -172,10 +211,11 @@ export default function Header() {
         <h1
           className="neon-text"
           style={{
-            fontSize: '2.3rem', // 🔺 INCREASED TEXT SIZE HERE (was 2.1rem)
+            fontSize: titleFontSize,
             margin: 0,
             fontFamily: "'Orbitron', sans-serif",
-            letterSpacing: '1.5px'
+            letterSpacing: '1.5px',
+            transition: 'font-size 0.3s ease'
           }}
         >
           PROTOCOL 456
