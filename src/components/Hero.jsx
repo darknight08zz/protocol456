@@ -3,10 +3,7 @@ import React, { useState, useEffect } from 'react';
 import EventCard from './EventCard';
 
 export default function Hero() {
-  // 🔴 Registration closes: October 12, 2025 at 23:59:59
   const REGISTRATION_DEADLINE = "2025-10-12T23:59:59";
-
-  // 🔴 Your actual Google Form URL
   const registrationUrl = "https://docs.google.com/forms/d/e/1FAIpQLSegL9IPAjlbHejKIZcQJQMzc7wFHV9TnLwvlsy75PXOBI0IxA/viewform?usp=header";
 
   const [timeLeft, setTimeLeft] = useState({
@@ -18,12 +15,11 @@ export default function Hero() {
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
   const [isEventLive, setIsEventLive] = useState(false);
 
-  // 👇 FIXED: EVENT_DAYS defined inside useEffect → no ESLint warning
   useEffect(() => {
     const EVENT_DAYS = ["2025-10-13", "2025-10-18"];
-    const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+    const today = new Date().toISOString().split('T')[0];
     setIsEventLive(EVENT_DAYS.includes(today));
-  }, []); // ✅ Safe empty dependency array
+  }, []);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -58,19 +54,52 @@ export default function Hero() {
     return () => clearInterval(timer);
   }, [REGISTRATION_DEADLINE]);
 
-  // Waitlist state
-  const [waitlistEmail, setWaitlistEmail] = useState('');
+  // 🔺 Updated waitlist state to include all fields
+  const [waitlistData, setWaitlistData] = useState({
+    name: '',
+    mobile: '',
+    email: '',
+    university: ''
+  });
   const [waitlistStatus, setWaitlistStatus] = useState('idle');
 
   const handleWaitlistSubmit = async (e) => {
     e.preventDefault();
     setWaitlistStatus('submitting');
-    // Simulate API call
-    setTimeout(() => {
-      setWaitlistStatus('success');
-      setWaitlistEmail('');
-      setTimeout(() => setWaitlistStatus('idle'), 3000);
-    }, 800);
+
+    const formData = new FormData();
+    formData.append('name', waitlistData.name);
+    formData.append('mobile', waitlistData.mobile);
+    formData.append('email', waitlistData.email);
+    formData.append('university', waitlistData.university);
+
+    try {
+      const response = await fetch('https://formspree.io/f/xjkaokql', {
+        method: 'POST',
+        body: formData,
+        headers: { Accept: 'application/json' }
+      });
+
+      if (response.ok) {
+        setWaitlistStatus('success');
+        setWaitlistData({ name: '', mobile: '', email: '', university: '' });
+        setTimeout(() => setWaitlistStatus('idle'), 4000);
+      } else {
+        setWaitlistStatus('error');
+      }
+    } catch {
+      setWaitlistStatus('error');
+    }
+  };
+
+  // 🔸 Reusable input style
+  const inputStyle = {
+    padding: '10px',
+    borderRadius: '6px',
+    border: '1px solid #444',
+    backgroundColor: 'rgba(20, 30, 40, 0.7)',
+    color: 'white',
+    fontSize: '1rem'
   };
 
   return (
@@ -88,7 +117,6 @@ export default function Hero() {
         position: 'relative'
       }}
     >
-      {/* LIVE NOW Badge */}
       {isEventLive && (
         <div
           style={{
@@ -111,7 +139,6 @@ export default function Hero() {
         </div>
       )}
 
-      {/* Main Tagline */}
       <p
         style={{
           fontSize: '1.8rem',
@@ -126,7 +153,6 @@ export default function Hero() {
         Are you ready to play?
       </p>
 
-      {/* Short Event Description */}
       <div
         style={{
           maxWidth: '700px',
@@ -142,7 +168,49 @@ export default function Hero() {
         Two days. One mission. Will you make it to the end?
       </div>
 
-      {/* Countdown or Closed Message */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '900px',
+          marginTop: '2rem',
+          padding: '0 2rem',
+        }}
+      >
+        <div
+          style={{
+            marginBottom: '2rem',
+            fontSize: '1.2rem',
+            color: '#bbb',
+            lineHeight: 1.6,
+            fontWeight: '500'
+          }}
+        >
+          <h3 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '1rem' }}>
+            Ready to take on the challenge?
+          </h3>
+          <p>
+            Join us as we unlock the next level of excitement. Whether you're a strategist, a coder, or simply love a good challenge, this event is designed to test your limits and push your skills to the edge.
+          </p>
+        </div>
+
+        <div
+          style={{
+            marginTop: '2rem',
+            fontSize: '1.2rem',
+            color: '#bbb',
+            lineHeight: 1.6,
+            fontWeight: '500'
+          }}
+        >
+          <p>
+            <strong>But it’s not just about the game</strong> – it’s about the journey, the learning, and the community you’ll be part of. We believe that the most thrilling experiences are the ones that bring together the brightest minds, and we want <em>you</em> to be a part of it.
+          </p>
+          <p>
+            So, what are you waiting for? Dive in, take your shot, and let’s make this an event to remember.
+          </p>
+        </div>
+      </div>
+
       {isRegistrationOpen ? (
         <div style={{ width: '100%', maxWidth: '800px' }}>
           <p style={{ color: '#aaa', marginBottom: '1rem', fontSize: '1.3rem' }}>
@@ -214,7 +282,6 @@ export default function Hero() {
         </div>
       )}
 
-      {/* Registration Button or Waitlist */}
       {isRegistrationOpen ? (
         <a
           href={registrationUrl}
@@ -231,29 +298,46 @@ export default function Hero() {
           REGISTER NOW
         </a>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', maxWidth: '450px', width: '100%' }}>
           <p style={{ color: 'var(--neon-red)', fontSize: '1.1rem', fontStyle: 'italic' }}>
             Registrations are now closed. See you at the event!
           </p>
-          <div style={{ marginTop: '1rem', maxWidth: '400px', width: '100%' }}>
+          <div style={{ marginTop: '1rem', width: '100%' }}>
             <p style={{ color: '#ccc', marginBottom: '0.8rem', fontSize: '1rem' }}>
               Missed the deadline? Join our waitlist for future events:
             </p>
-            <form onSubmit={handleWaitlistSubmit} style={{ display: 'flex', gap: '0.6rem', flexDirection: 'column' }}>
+            <form onSubmit={handleWaitlistSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', width: '100%' }}>
+              <input
+                type="text"
+                value={waitlistData.name}
+                onChange={(e) => setWaitlistData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Full Name"
+                required
+                style={inputStyle}
+              />
+              <input
+                type="tel"
+                value={waitlistData.mobile}
+                onChange={(e) => setWaitlistData(prev => ({ ...prev, mobile: e.target.value }))}
+                placeholder="Mobile Number"
+                required
+                style={inputStyle}
+              />
               <input
                 type="email"
-                value={waitlistEmail}
-                onChange={(e) => setWaitlistEmail(e.target.value)}
-                placeholder="Your email"
+                value={waitlistData.email}
+                onChange={(e) => setWaitlistData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Email"
                 required
-                style={{
-                  padding: '10px',
-                  borderRadius: '6px',
-                  border: '1px solid #444',
-                  backgroundColor: 'rgba(20, 30, 40, 0.7)',
-                  color: 'white',
-                  fontSize: '1rem'
-                }}
+                style={inputStyle}
+              />
+              <input
+                type="text"
+                value={waitlistData.university}
+                onChange={(e) => setWaitlistData(prev => ({ ...prev, university: e.target.value }))}
+                placeholder="University"
+                required
+                style={inputStyle}
               />
               <button
                 type="submit"
@@ -270,15 +354,14 @@ export default function Hero() {
               </button>
             </form>
             {waitlistStatus === 'success' && (
-              <p style={{ color: 'var(--neon-teal)', marginTop: '0.6rem', fontWeight: 'bold' }}>
-                ✅ Added to waitlist!
+              <p style={{ color: 'var(--neon-teal)', marginTop: '0.8rem', fontWeight: 'bold', textAlign: 'center' }}>
+                ✅ Your response has been recorded. Stay tuned — we will contact you soon!
               </p>
             )}
           </div>
         </div>
       )}
 
-      {/* EVENTS SECTION */}
       <div style={{ width: '100%', maxWidth: '950px', paddingTop: '3rem', borderTop: '1px solid #222' }}>
         <h2
           className="neon-text"
