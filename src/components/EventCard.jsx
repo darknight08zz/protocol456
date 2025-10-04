@@ -16,6 +16,8 @@ export default function EventCard({ day, title, link, isLive = false }) {
         position: 'relative',
         overflow: 'hidden',
         transition: 'opacity 0.3s',
+        minWidth: '320px',
+        minHeight: '220px',
         pointerEvents: isLive ? 'auto' : 'none' // 🔑 disables all interaction
       }}
     >

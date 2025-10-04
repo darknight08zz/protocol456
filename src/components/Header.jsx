@@ -48,34 +48,53 @@ export default function Header() {
         onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
       />
 
-      {/* IEEE Day Logo */}
-      <img
-        src={`${process.env.PUBLIC_URL}/ieee-day.png`}
-        alt="IEEE Day"
+      {/* IEEE Day Logo with Clickable Link */}
+      <a
+        href="https://ieeeday.org/"
+        target="_blank"
+        rel="noopener noreferrer"
         style={{
-          height: '60px', // 🔴 Set to 60px
-          width: 'auto',   // Auto width to maintain aspect ratio
-          objectFit: 'contain', // Keep proportions
-          borderRadius: '4px',
-          
-          transition: 'filter 0.3s ease'
+          display: 'inline-block',
+          transition: 'transform 0.25s ease, filter 0.25s ease',
+          borderRadius: '6px',
+          overflow: 'hidden'
         }}
-        onError={(e) => {
-          e.target.style.display = 'none';
-          const fallback = document.createElement('span');
-          fallback.innerText = 'IEEE DAY';
-          fallback.style.color = '#0077B5';
-          fallback.style.fontSize = '0.9rem';
-          fallback.style.fontWeight = 'bold';
-          fallback.style.display = 'inline-block';
-          fallback.style.padding = '4px 8px';
-          fallback.style.borderRadius = '4px';
-          fallback.style.backgroundColor = 'rgba(0, 119, 181, 0.1)';
-          e.target.parentNode.appendChild(fallback);
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.04)';
+          e.currentTarget.style.filter = 'drop-shadow(0 0 10px rgba(0, 119, 181, 0.8))';
         }}
-        onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 6px rgba(0, 119, 181, 0.8))'}
-        onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
-      />
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.filter = 'none';
+        }}
+      >
+        <img
+          src={`${process.env.PUBLIC_URL}/ieee-day.png`}
+          alt="IEEE Day"
+          style={{
+            height: '60px', // 🔴 Set to 60px
+            width: 'auto',   // Auto width to maintain aspect ratio
+            objectFit: 'contain', // Keep proportions
+            borderRadius: '4px',
+            transition: 'filter 0.3s ease'
+          }}
+          onError={(e) => {
+            e.target.style.display = 'none';
+            const fallback = document.createElement('span');
+            fallback.innerText = 'IEEE DAY';
+            fallback.style.color = '#0077B5';
+            fallback.style.fontSize = '0.9rem';
+            fallback.style.fontWeight = 'bold';
+            fallback.style.display = 'inline-block';
+            fallback.style.padding = '4px 8px';
+            fallback.style.borderRadius = '4px';
+            fallback.style.backgroundColor = 'rgba(0, 119, 181, 0.1)';
+            e.target.parentNode.appendChild(fallback);
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 6px rgba(0, 119, 181, 0.8))'}
+          onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
+        />
+      </a>
 
       {/* Clickable Logo */}
       <a

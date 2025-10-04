@@ -178,7 +178,7 @@ export default function Day1Page() {
             </button>
 
             <h1 className="neon-text" style={{ fontSize: '2.5rem', marginBottom: '1rem', fontFamily: "'Orbitron', sans-serif" }}>
-                ROUND ONE: TRIALS
+                ROUND ONE: SHAPE OF FATE
             </h1>
 
             <p style={{
