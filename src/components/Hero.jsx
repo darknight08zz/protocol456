@@ -216,7 +216,7 @@ export default function Hero() {
             day="Day 1 • October 13, 2025"
             title="ROUND ONE: TRIALS"
             link="/day1"
-            isLive={true} // 👈 CHANGE TO `true` WHEN YOU WANT IT LIVE
+            isLive={false} // 👈 CHANGE TO `true` WHEN YOU WANT IT LIVE
           />
           <EventCard
             day="Day 2 • October 18, 2025"
