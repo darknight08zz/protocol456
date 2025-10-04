@@ -101,8 +101,8 @@ export default function Header() {
           src={`${process.env.PUBLIC_URL}/ieee-xim-logo.png`}
           alt="IEEE XIM Student Branch"
           style={{
-            height: '60px',
-            width: 'auto',
+            height: '120px',
+            width: '120px',
             objectFit: 'contain',
             display: 'block',
             transition: 'none'
