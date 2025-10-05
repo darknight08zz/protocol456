@@ -4,8 +4,8 @@ import { FaLinkedin, FaInstagram, FaTwitter } from 'react-icons/fa';
 
 // 🔴 REPLACE WITH YOUR ACTUAL LINKS
 const SOCIAL_LINKS = {
-  linkedin: "https://www.linkedin.com/company/your-ieee-branch",
-  instagram: "https://www.instagram.com/your_ieee_handle",
+  linkedin: "https://www.linkedin.com/in/ieee-xim-student-branch?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+  instagram: "https://www.instagram.com/ieee_scse_xim?igsh=MXQ1MDRvdWh2NzJsMQ==",
   x: "https://x.com/ieee_xim"
 };
 
