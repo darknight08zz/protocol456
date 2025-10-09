@@ -4,6 +4,7 @@
   "proxy": "http://localhost:5000",
   "private": true,
   "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -52,7 +53,12 @@
   },
   "description": "Protocol 456 — Frontend + Backend (combined for dev)",
   "main": "server/server.js",
-  "keywords": ["react", "express", "game", "protocol456"],
+  "keywords": [
+    "react",
+    "express",
+    "game",
+    "protocol456"
+  ],
   "author": "",
   "license": "ISC"
 }
