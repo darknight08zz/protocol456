@@ -197,7 +197,11 @@ app.get('/api/debug/teams', (req, res) => {
     res.json(err ? { error: 'DB error' } : rows);
   });
 });
-
+app.get('/api/debug/submissions', (req, res) => {
+  db.all('SELECT * FROM submissions', (err, rows) => {
+    res.json(err ? { error: 'DB error' } : rows);
+  });
+});
 // Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Backend is running' });
