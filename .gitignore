@@ -39,3 +39,4 @@ out/
 # IDE
 .vscode/
 .DS_Store
+.vercel
