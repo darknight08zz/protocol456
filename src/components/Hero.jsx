@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import EventCard from './EventCard';
 
 export default function Hero() {
-  const REGISTRATION_DEADLINE = "2025-10-12T23:59:59";
+  const REGISTRATION_DEADLINE = "2025-10-10T23:59:59";
   const registrationUrl = "https://docs.google.com/forms/d/e/1FAIpQLSegL9IPAjlbHejKIZcQJQMzc7wFHV9TnLwvlsy75PXOBI0IxA/viewform?usp=header";
 
   const [timeLeft, setTimeLeft] = useState({
@@ -54,7 +54,7 @@ export default function Hero() {
     return () => clearInterval(timer);
   }, [REGISTRATION_DEADLINE]);
 
-  // 🔺 Updated waitlist state to include all fields
+  // Waitlist state
   const [waitlistData, setWaitlistData] = useState({
     name: '',
     mobile: '',
@@ -92,7 +92,6 @@ export default function Hero() {
     }
   };
 
-  // 🔸 Reusable input style
   const inputStyle = {
     padding: '10px',
     borderRadius: '6px',
@@ -100,6 +99,17 @@ export default function Hero() {
     backgroundColor: 'rgba(20, 30, 40, 0.7)',
     color: 'white',
     fontSize: '1rem'
+  };
+
+  // 🔐 Password-protected navigation for Day One
+  const handleDayOneClick = (e) => {
+    e.preventDefault();
+    const password = prompt("🔐 Enter access password for Day One:");
+    if (password === "protocol456") {
+      window.location.href = "/day1";
+    } else if (password !== null) {
+      alert("❌ Incorrect password. Access denied.");
+    }
   };
 
   return (
@@ -221,7 +231,12 @@ export default function Hero() {
               display: 'flex',
               justifyContent: 'center',
               gap: '0.8rem',
-              flexWrap: 'wrap'
+              flexWrap: 'wrap',
+              fontFamily: "'Orbitron', sans-serif",
+              letterSpacing: '1.5px',
+              transition: 'font-size 0.3s ease',
+              color: '#FF2A6D',
+              textShadow: '0 0 4px rgba(214, 34, 70, 0.5), 0 0 8px rgba(214, 34, 70, 0.3)'
             }}
           >
             {Object.entries(timeLeft).map(([unit, value]) => (
@@ -369,7 +384,10 @@ export default function Hero() {
             fontSize: '2.2rem',
             marginBottom: '2rem',
             fontFamily: "'Orbitron', sans-serif",
-            letterSpacing: '1.5px'
+            letterSpacing: '1.5px',
+            transition: 'font-size 0.3s ease',
+            color: '#FF2A6D',
+            textShadow: '0 0 4px rgba(214, 34, 70, 0.5), 0 0 8px rgba(214, 34, 70, 0.3)'
           }}
         >
           EVENT SCHEDULE
@@ -379,18 +397,40 @@ export default function Hero() {
             display: 'flex',
             gap: '2.2rem',
             justifyContent: 'center',
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            margin: 0,
+            color: '#FF2A6D',
           }}
         >
-          <EventCard
-            day="October 13, 2025"
-            title={<><span>DAY ONE:</span><br />THE INITIAL PROTOCOL</>}
-            link="/day1"
-            isLive={false}
-          />
+          {/* 🔐 Password-protected Day One */}
+          <div
+            onClick={handleDayOneClick}
+            style={{ width: '320px', cursor: 'pointer' }}
+          >
+            <EventCard
+              day="October 11, 2025"
+              title={
+                <>
+                  <span>DAY ONE:</span>
+                  <br />
+                  THE INITIAL PROTOCOL
+                </>
+              }
+              link="#" // dummy link — navigation handled by onClick
+              isLive={false}
+            />
+          </div>
+
+          {/* Public Day Two */}
           <EventCard
             day="October 18, 2025"
-            title={<><span>DAY TWO:</span><br />THE FINAL PROTOCOL</>}
+            title={
+              <>
+                <span>DAY TWO:</span>
+                <br />
+                THE FINAL PROTOCOL
+              </>
+            }
             link="/day2"
             isLive={false}
           />

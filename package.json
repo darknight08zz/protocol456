@@ -1,6 +1,7 @@
 {
   "name": "protocol456",
   "version": "0.1.0",
+  "proxy": "http://localhost:5000",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
@@ -8,6 +9,8 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
     "canvas-confetti": "^1.9.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
@@ -21,7 +24,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "server": "node server/server.js",
+    "dev:server": "nodemon server/server.js"
   },
   "eslintConfig": {
     "extends": [
@@ -42,6 +47,12 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.3.0"
-  }
+    "gh-pages": "^6.3.0",
+    "nodemon": "^3.1.10"
+  },
+  "description": "Protocol 456 — Frontend + Backend (combined for dev)",
+  "main": "server/server.js",
+  "keywords": ["react", "express", "game", "protocol456"],
+  "author": "",
+  "license": "ISC"
 }
