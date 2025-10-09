@@ -11,7 +11,7 @@ app.use(express.json());
 const dbPath = path.join(__dirname, 'game.db');
 const db = new sqlite3.Database(dbPath);
 
-const TOTAL_TEAMS = 10;
+const TOTAL_TEAMS = 5;
 
 // Initialize DB on first run (optional but helpful)
 db.serialize(() => {
