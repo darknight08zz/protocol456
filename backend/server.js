@@ -5,15 +5,27 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 const app = express();
-app.use(cors());
+
+// ✅ Explicitly allow your frontend domains
+app.use(cors({
+  origin: [
+    'https://protocol456.vercel.app', // Your live Vercel frontend
+    'http://localhost:5173',          // Vite default dev server
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',          // Create React App fallback
+    'http://127.0.0.1:3000'
+  ]
+}));
+
 app.use(express.json());
 
+// Database setup
 const dbPath = path.join(__dirname, 'game.db');
 const db = new sqlite3.Database(dbPath);
 
-const TOTAL_TEAMS = 5;
+const TOTAL_TEAMS = 5; // Adjust as needed
 
-// Initialize DB on first run (optional but helpful)
+// Initialize database tables
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS game_state (
@@ -170,23 +182,29 @@ function calculateAndApplyScores(round, callback) {
     callback(roundResults);
   });
 }
+
 // 🔑 ADMIN: Reset all game data
 app.post('/api/admin/reset', (req, res) => {
-  // Clear all tables
   db.run('DELETE FROM teams');
   db.run('DELETE FROM submissions');
   db.run('UPDATE game_state SET current_round = 1, is_active = 1 WHERE id = 1');
-  
   res.json({ success: true, message: 'Game reset successfully' });
 });
-// Debug endpoint (for development only)
+
+// Debug endpoint (safe to keep in dev; remove in prod if needed)
 app.get('/api/debug/teams', (req, res) => {
   db.all('SELECT * FROM teams', (err, rows) => {
     res.json(err ? { error: 'DB error' } : rows);
   });
 });
 
+// Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Backend is running' });
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🎮 Game backend running on http://localhost:${PORT}`);
+  console.log(`🎮 Game backend running on port ${PORT}`);
 });

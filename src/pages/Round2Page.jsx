@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = '/api/round2';
+const API_BASE = 'https://game-backend-r9w8.onrender.com/api/round2';
 
 export default function Round2Page() {
   const navigate = useNavigate();
