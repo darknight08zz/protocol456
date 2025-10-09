@@ -1,373 +1,360 @@
 // src/pages/Round2Page.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// ✅ Changed: relative path for Vercel API
-const API_BASE = '/api/round2';
+const TOTAL_TEAMS = 10;
+const ROUNDS = 10;
+const ROUND_DURATION = 2 * 60; // 2 minutes
+
+// 🔧 TIMER CONTROL — SET TO true WHEN YOU WANT TIMER ACTIVE
+const ENABLE_TIMER = false;
 
 export default function Round2Page() {
-  const navigate = useNavigate();
-  const [teamName, setTeamName] = useState('');
-  const [members, setMembers] = useState(['']); // Start with one member input
-  const [teamId, setTeamId] = useState('');
-  const [currentRound, setCurrentRound] = useState(1);
-  const [userChoice, setUserChoice] = useState(null);
-  const [status, setStatus] = useState('idle'); // 'idle', 'submitted', 'round_complete', 'timed_out'
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
+    const navigate = useNavigate();
 
-  // Add/remove/update members
-  const addMember = () => setMembers([...members, '']);
-  const removeMember = (index) => {
-    if (members.length > 1) {
-      setMembers(members.filter((_, i) => i !== index));
-    }
-  };
-  const updateMember = (index, value) => {
-    const newMembers = [...members];
-    newMembers[index] = value;
-    setMembers(newMembers);
-  };
+    const [teamName, setTeamName] = useState('');
+    const [currentRound, setCurrentRound] = useState(1);
+    const [timeLeft, setTimeLeft] = useState(ROUND_DURATION);
+    const [userChoice, setUserChoice] = useState(null);
+    const [isTimerActive, setIsTimerActive] = useState(ENABLE_TIMER);
+    const [scores, setScores] = useState({});
+    const [showResults, setShowResults] = useState(false);
+    const [roundResult, setRoundResult] = useState(null);
 
-  // Join team
-  const handleJoin = async () => {
-    const validMembers = members.map(m => m.trim()).filter(Boolean);
-    if (!teamName.trim() || validMembers.length === 0) {
-      setError('Team name and at least one member required');
-      return;
-    }
+    const timerRef = useRef(null);
 
-    try {
-      const res = await fetch(`${API_BASE}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamName: teamName.trim(), members: validMembers })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setTeamId(data.teamId);
-        setCurrentRound(data.currentRound);
-        setError('');
-      } else {
-        setError(data.error || 'Failed to join');
-      }
-    } catch (err) {
-      setError('Network error. Make sure you’re on Vercel or using `vercel dev`.');
-    }
-  };
-
-  // Submit choice
-  const handleSubmit = async () => {
-    if (!userChoice || !teamId) return;
-    try {
-      const res = await fetch(`${API_BASE}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamId, choice: userChoice, roundNumber: currentRound })
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError(data.error);
-        return;
-      }
-      setStatus('submitted');
-      setError('');
-    } catch (err) {
-      setError('Submission failed');
-    }
-  };
-
-  // Auto-check round status every 8 seconds
-  useEffect(() => {
-    let interval;
-    if (teamId && status === 'submitted') {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(`${API_BASE}/check-round?roundNumber=${currentRound}&teamId=${teamId}`);
-          const data = await res.json();
-          if (data.status === 'round_complete') {
-            setResult(data);
-            setStatus('round_complete');
-            clearInterval(interval);
-          } else if (data.error) {
-            console.warn('Check-round error:', data.error);
-          }
-        } catch (err) {
-          console.error('Auto-check failed');
+    // Initialize scores
+    useEffect(() => {
+        if (teamName && !scores[teamName]) {
+            setScores(prev => ({ ...prev, [teamName]: 0 }));
         }
-      }, 8000);
-    }
-    return () => clearInterval(interval);
-  }, [teamId, status, currentRound]);
+    }, [teamName]);
 
-  // 2-minute auto-lock
-  useEffect(() => {
-    let timer;
-    if (status === 'idle' && teamId) {
-      timer = setTimeout(() => {
-        setStatus('timed_out');
-        // Auto-submit "cooperate" or just disable — we disable
-      }, 2 * 60 * 1000); // 2 minutes
-    }
-    return () => clearTimeout(timer);
-  }, [status, teamId]);
+    // Timer effect (only if enabled)
+    useEffect(() => {
+        if (ENABLE_TIMER && isTimerActive && timeLeft > 0) {
+            timerRef.current = setInterval(() => {
+                setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1));
+            }, 1000);
+        } else if (timeLeft === 0) {
+            setIsTimerActive(false);
+        }
 
-  const handleNextRound = () => {
-    if (currentRound >= 10) {
-      navigate('/');
-      return;
-    }
-    setUserChoice(null);
-    setStatus('idle');
-    setResult(null);
-    setCurrentRound(prev => prev + 1);
-  };
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [isTimerActive, timeLeft]);
 
-  // === STYLES (unchanged) ===
-  const pageStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    padding: '1rem',
-    backgroundColor: '#05080c',
-    fontFamily: 'Orbitron, monospace',
-    color: 'white',
-    boxSizing: 'border-box'
-  };
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
-  const cardStyle = {
-    backgroundColor: '#0a1422',
-    border: '1px solid #00F5D4',
-    borderRadius: '16px',
-    padding: '2rem',
-    width: '95%',
-    maxWidth: '600px',
-    textAlign: 'center',
-    boxShadow: '0 0 20px rgba(0, 245, 212, 0.15)'
-  };
+    const simulateOtherChoices = () => {
+        const otherChoices = [];
+        for (let i = 0; i < TOTAL_TEAMS - 1; i++) {
+            otherChoices.push(Math.random() > 0.5 ? 'selfish' : 'cooperate');
+        }
+        return otherChoices;
+    };
 
-  const inputStyle = {
-    padding: '12px 20px',
-    fontSize: '1.2rem',
-    backgroundColor: '#111',
-    color: 'white',
-    border: '1px solid #00F5D4',
-    borderRadius: '8px',
-    width: '100%',
-    margin: '0.5rem 0',
-    textAlign: 'center'
-  };
+    const handleChoice = (choice) => {
+        // If timer disabled, always allow choice
+        if (!ENABLE_TIMER || timeLeft > 0) {
+            setUserChoice(choice);
+        }
+    };
 
-  // === JOIN SCREEN ===
-  if (!teamId) {
-    return (
-      <div style={pageStyle}>
-        <div style={cardStyle}>
-          <h2>🌐 ROUND 2: NETWORK STRATEGY</h2>
-          <p>Enter your team name and members (max 5 members):</p>
-          
-          <input
-            type="text"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            placeholder="Team Name"
-            style={inputStyle}
-          />
-          
-          <div style={{ marginTop: '1rem' }}>
-            {members.map((member, i) => (
-              <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+    const processRound = () => {
+        if (!userChoice) return;
+
+        const others = simulateOtherChoices();
+        const allChoices = [userChoice, ...others];
+        const selfishCount = allChoices.filter(c => c === 'selfish').length;
+        const coopCount = TOTAL_TEAMS - selfishCount;
+
+        let userPoints = 0;
+        let resultMessage = '';
+
+        if (selfishCount === 0) {
+            userPoints = 10;
+            resultMessage = `All teams cooperated! +10 points.`;
+        } else if (selfishCount < TOTAL_TEAMS / 2) {
+            if (userChoice === 'selfish') {
+                userPoints = 15;
+            } else {
+                const remainingBandwidth = 100 - (15 * selfishCount);
+                userPoints = coopCount > 0 ? Math.round(remainingBandwidth / coopCount) : 0;
+            }
+            resultMessage = `Selfish: ${selfishCount}, Cooperators: ${coopCount}. `;
+            resultMessage += userChoice === 'selfish' ? '+15 points' : `+${userPoints} points`;
+        } else {
+            if (userChoice === 'selfish') {
+                userPoints = -10;
+                resultMessage = 'Bandwidth clash! Selfish teams lose 10 points.';
+            } else {
+                userPoints = 0;
+                resultMessage = 'Bandwidth clash! Cooperators get 0 points.';
+            }
+        }
+
+        const newTotal = (scores[teamName] || 0) + userPoints;
+        setScores(prev => ({ ...prev, [teamName]: newTotal }));
+
+        setRoundResult({
+            userChoice,
+            selfishCount,
+            userPoints,
+            totalScore: newTotal,
+            message: resultMessage
+        });
+
+        setShowResults(true);
+    };
+
+    const handleNextRound = () => {
+        if (currentRound === ROUNDS) {
+            navigate('/');
+            return;
+        }
+
+        setUserChoice(null);
+        setTimeLeft(ROUND_DURATION);
+        setIsTimerActive(ENABLE_TIMER);
+        setShowResults(false);
+        setRoundResult(null);
+        setCurrentRound(prev => prev + 1);
+    };
+
+    const handleStart = () => {
+        if (!teamName.trim()) return;
+        setIsTimerActive(ENABLE_TIMER);
+    };
+
+    if (!teamName) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                backgroundColor: '#05080c',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#00F5D4',
+                fontFamily: "'Orbitron', sans-serif",
+                padding: '2rem'
+            }}>
+                <h2 style={{ fontSize: '2.2rem', marginBottom: '2rem' }}>🌐 ROUND 2: NETWORK STRATEGY</h2>
                 <input
-                  type="text"
-                  value={member}
-                  onChange={(e) => updateMember(i, e.target.value)}
-                  placeholder={`Member ${i + 1}`}
-                  style={inputStyle}
-                />
-                {members.length > 1 && (
-                  <button
-                    onClick={() => removeMember(i)}
+                    type="text"
+                    placeholder="Enter your team name"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
                     style={{
-                      background: 'none',
-                      border: '1px solid red',
-                      color: 'red',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      minWidth: '30px'
+                        padding: '12px 20px',
+                        fontSize: '1.1rem',
+                        backgroundColor: 'rgba(10, 20, 30, 0.7)',
+                        border: '1px solid #00F5D4',
+                        borderRadius: '8px',
+                        color: 'white',
+                        width: '300px',
+                        textAlign: 'center'
                     }}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-            {members.length < 5 && (
-              <button
-                onClick={addMember}
-                style={{
-                  color: '#00F5D4',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  marginTop: '8px',
-                  fontSize: '1rem'
-                }}
-              >
-                + Add Member
-              </button>
-            )}
-          </div>
-
-          <button
-            onClick={handleJoin}
-            disabled={!teamName.trim() || members.some(m => !m.trim())}
-            style={{
-              padding: '12px 32px',
-              fontSize: '1.1rem',
-              backgroundColor: teamName.trim() && members.every(m => m.trim()) ? '#00F5D4' : '#555',
-              color: '#000',
-              border: 'none',
-              borderRadius: '8px',
-              fontFamily: 'Orbitron',
-              cursor: teamName.trim() && members.every(m => m.trim()) ? 'pointer' : 'not-allowed',
-              marginTop: '1.5rem'
-            }}
-          >
-            JOIN GAME
-          </button>
-          {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
-        </div>
-      </div>
-    );
-  }
-
-  // === GAME SCREEN ===
-  return (
-    <div style={pageStyle}>
-      <button
-        onClick={() => navigate('/')}
-        style={{
-          alignSelf: 'flex-start',
-          marginBottom: '1.5rem',
-          padding: '6px 12px',
-          color: '#00F5D4',
-          background: 'transparent',
-          border: '1px solid #00F5D4',
-          borderRadius: '4px',
-          fontFamily: 'Orbitron',
-          cursor: 'pointer'
-        }}
-      >
-        ← Home
-      </button>
-
-      <div style={cardStyle}>
-        <h2>ROUND {currentRound} / 10</h2>
-        <p>Team: <strong>{teamName}</strong></p>
-
-        {status === 'idle' && (
-          <div style={{ marginTop: '1.5rem' }}>
-            <p style={{ marginBottom: '1.2rem' }}>Choose your action (2 minutes):</p>
-            <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setUserChoice('cooperate')}
-                style={{
-                  padding: '24px 32px',
-                  fontSize: '1.3rem',
-                  backgroundColor: userChoice === 'cooperate' ? '#00d0b0' : '#00F5D4',
-                  color: '#000',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontFamily: 'Orbitron',
-                  cursor: 'pointer',
-                  minWidth: '180px',
-                  boxShadow: '0 4px 8px rgba(0, 245, 212, 0.3)'
-                }}
-              >
-                🟩 Cooperate
-              </button>
-              <button
-                onClick={() => setUserChoice('selfish')}
-                style={{
-                  padding: '24px 32px',
-                  fontSize: '1.3rem',
-                  backgroundColor: userChoice === 'selfish' ? '#ff0a4d' : '#FF2A6D',
-                  color: '#000',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontFamily: 'Orbitron',
-                  cursor: 'pointer',
-                  minWidth: '180px',
-                  boxShadow: '0 4px 8px rgba(255, 42, 109, 0.3)'
-                }}
-              >
-                🟥 Selfish
-              </button>
+                />
+                <button
+                    onClick={handleStart}
+                    disabled={!teamName.trim()}
+                    style={{
+                        marginTop: '1.5rem',
+                        padding: '12px 30px',
+                        backgroundColor: teamName.trim() ? '#00F5D4' : '#555',
+                        color: '#000',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontFamily: "'Orbitron', sans-serif",
+                        fontSize: '1.2rem',
+                        cursor: teamName.trim() ? 'pointer' : 'not-allowed'
+                    }}
+                >
+                    START ROUND 1
+                </button>
             </div>
-            <button
-              onClick={handleSubmit}
-              disabled={!userChoice}
-              style={{
-                marginTop: '2rem',
-                padding: '12px 36px',
-                fontSize: '1.1rem',
-                backgroundColor: userChoice ? '#00F5D4' : '#555',
-                color: '#000',
-                border: 'none',
+        );
+    }
+
+    return (
+        <div style={{
+            minHeight: '100vh',
+            backgroundColor: '#05080c',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            color: '#00F5D4',
+            fontFamily: "'Orbitron', sans-serif",
+            padding: '2rem'
+        }}>
+            {/* Top Navigation */}
+            <div style={{
+                alignSelf: 'flex-start',
+                display: 'flex',
+                gap: '0.8rem',
+                marginBottom: '1.5rem'
+            }}>
+                <button
+                    onClick={() => navigate('/')}
+                    style={{
+                        background: 'transparent',
+                        border: '1px solid #555',
+                        color: '#aaa',
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontFamily: "'Roboto', sans-serif",
+                        fontSize: '0.95rem'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#aaa'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#555'}
+                >
+                    ← Back to Home
+                </button>
+                <button
+                    onClick={() => navigate('/day1')}
+                    style={{
+                        background: 'transparent',
+                        border: '1px solid #555',
+                        color: '#aaa',
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontFamily: "'Roboto', sans-serif",
+                        fontSize: '0.95rem'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#00F5D4'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#555'}
+                >
+                    ↺ Back to Rounds
+                </button>
+            </div>
+
+            <h2 style={{ fontSize: '2.2rem', marginBottom: '1rem' }}>
+                ROUND {currentRound} / {ROUNDS}
+            </h2>
+
+            {/* ⏱️ TIMER DISPLAY — ADAPTS TO ENABLED/DISABLED */}
+            <div style={{
+                marginBottom: '1.5rem',
+                padding: '10px 24px',
+                background: 'rgba(0, 0, 0, 0.4)',
+                border: `2px solid ${ENABLE_TIMER && timeLeft <= 30 ? '#FF2A6D' : '#00F5D4'}`,
                 borderRadius: '8px',
-                fontFamily: 'Orbitron',
-                cursor: userChoice ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Submit Choice
-            </button>
-            {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
-          </div>
-        )}
+                fontSize: '1.4rem'
+            }}>
+                {ENABLE_TIMER 
+                    ? `TIME LEFT: ${formatTime(timeLeft)}` 
+                    : "🕒 No timer (demo mode)"}
+            </div>
 
-        {status === 'submitted' && (
-          <p style={{ marginTop: '2rem', fontSize: '1.2rem' }}>✅ Submitted! Waiting for other teams or timeout...</p>
-        )}
+            <p style={{ color: '#ddd', marginBottom: '1.5rem', maxWidth: '600px', lineHeight: 1.6 }}>
+                You are team <strong>{teamName}</strong>. Choose wisely:  
+                🟩 <strong>Cooperate</strong> or 🟥 <strong>Selfish</strong>
+            </p>
 
-        {status === 'timed_out' && (
-          <p style={{ marginTop: '2rem', fontSize: '1.2rem', color: 'orange' }}>⏰ Time's up! Choice locked.</p>
-        )}
+            {!showResults && (
+                <div style={{ marginBottom: '2rem' }}>
+                    <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center' }}>
+                        <button
+                            onClick={() => handleChoice('cooperate')}
+                            disabled={ENABLE_TIMER && timeLeft === 0}
+                            style={{
+                                padding: '14px 28px',
+                                backgroundColor: userChoice === 'cooperate' ? '#00F5D4' : 'rgba(10, 20, 30, 0.7)',
+                                color: '#000',
+                                border: '2px solid #00F5D4',
+                                borderRadius: '8px',
+                                fontFamily: "'Orbitron', sans-serif",
+                                fontSize: '1.2rem',
+                                cursor: (ENABLE_TIMER && timeLeft === 0) ? 'not-allowed' : 'pointer',
+                                opacity: (ENABLE_TIMER && timeLeft === 0) ? 0.6 : 1
+                            }}
+                        >
+                            🟩 COOPERATE
+                        </button>
 
-        {status === 'round_complete' && result && (
-          <div style={{ marginTop: '1.5rem' }}>
-            <p>Selfish teams: <strong>{result.selfishCount}</strong> / 10</p>
+                        <button
+                            onClick={() => handleChoice('selfish')}
+                            disabled={ENABLE_TIMER && timeLeft === 0}
+                            style={{
+                                padding: '14px 28px',
+                                backgroundColor: userChoice === 'selfish' ? '#FF2A6D' : 'rgba(10, 20, 30, 0.7)',
+                                color: '#000',
+                                border: '2px solid #FF2A6D',
+                                borderRadius: '8px',
+                                fontFamily: "'Orbitron', sans-serif",
+                                fontSize: '1.2rem',
+                                cursor: (ENABLE_TIMER && timeLeft === 0) ? 'not-allowed' : 'pointer',
+                                opacity: (ENABLE_TIMER && timeLeft === 0) ? 0.6 : 1
+                            }}
+                        >
+                            🟥 SELFISH
+                        </button>
+                    </div>
+                </div>
+            )}
 
-            {currentRound <= 5 ? (
-              <>
-                <p>Points this round: <strong>{result.pointsThisRound}</strong></p>
-                {result.showScore && <p>Total Score: <strong>{result.totalScore}</strong></p>}
-              </>
-            ) : (
-              <p style={{ fontStyle: 'italic', color: '#aaa' }}>
-                (Score details hidden from Round 6 onward)
-              </p>
+            {showResults && roundResult && (
+                <div style={{
+                    backgroundColor: 'rgba(10, 20, 30, 0.8)',
+                    border: '2px solid #00F5D4',
+                    borderRadius: '12px',
+                    padding: '1.5rem',
+                    marginBottom: '2rem',
+                    maxWidth: '600px',
+                    textAlign: 'center'
+                }}>
+                    <p style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                        <strong>Your choice:</strong> {roundResult.userChoice === 'cooperate' ? '🟩 Cooperate' : '🟥 Selfish'}
+                    </p>
+                    <p style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                        <strong>Selfish teams:</strong> {roundResult.selfishCount} / {TOTAL_TEAMS}
+                    </p>
+                    <p style={{ fontSize: '1.3rem', color: roundResult.userPoints >= 0 ? '#00F5D4' : '#FF2A6D' }}>
+                        ➕ Points this round: {roundResult.userPoints}
+                    </p>
+                    <p style={{ fontSize: '1.1rem', color: '#aaa' }}>
+                        Total Score: <strong>{roundResult.totalScore}</strong>
+                    </p>
+                    <p style={{ marginTop: '1rem', color: '#ddd' }}>
+                        {roundResult.message}
+                    </p>
+                </div>
             )}
 
             <button
-              onClick={handleNextRound}
-              style={{
-                marginTop: '1.5rem',
-                padding: '10px 24px',
-                backgroundColor: '#00F5D4',
-                color: '#000',
-                border: 'none',
-                borderRadius: '8px',
-                fontFamily: 'Orbitron',
-                cursor: 'pointer'
-              }}
+                onClick={showResults ? handleNextRound : processRound}
+                disabled={!userChoice}
+                style={{
+                    padding: '12px 30px',
+                    backgroundColor: !userChoice ? '#555' : '#00F5D4',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontFamily: "'Orbitron', sans-serif'",
+                    fontSize: '1.2rem',
+                    cursor: !userChoice ? 'not-allowed' : 'pointer',
+                    opacity: !userChoice ? 0.6 : 1
+                }}
             >
-              {currentRound === 10 ? 'Finish Game' : 'Next Round →'}
+                {showResults 
+                    ? (currentRound === ROUNDS ? 'VIEW FINAL SCORE →' : 'NEXT ROUND →') 
+                    : 'SUBMIT CHOICE'}
             </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+
+            <p style={{ color: '#777', marginTop: '2rem', fontSize: '0.95rem' }}>
+                💡 {ENABLE_TIMER 
+                    ? "After Round 5, scores are hidden. Strategy > luck." 
+                    : "Timer disabled for testing. Enable via ENABLE_TIMER flag."}
+            </p>
+        </div>
+    );
 }
