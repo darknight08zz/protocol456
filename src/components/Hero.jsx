@@ -3,6 +3,12 @@ import React, { useState, useEffect } from 'react';
 import EventCard from './EventCard';
 
 export default function Hero() {
+  // ====== 🛠 MANUAL OVERRIDE FOR DEVELOPMENT ======
+  // Set to `true` to force a day as "live" regardless of date
+  const DAY_ONE_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 1
+  const DAY_TWO_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 2
+  // ================================================
+
   const REGISTRATION_DEADLINE = "2025-10-10T23:59:59";
   const registrationUrl = "https://docs.google.com/forms/d/e/1FAIpQLSegL9IPAjlbHejKIZcQJQMzc7wFHV9TnLwvlsy75PXOBI0IxA/viewform?usp=header";
 
@@ -13,14 +19,18 @@ export default function Hero() {
     seconds: '00'
   });
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
-  const [isEventLive, setIsEventLive] = useState(false);
 
-  useEffect(() => {
-    const EVENT_DAYS = ["2025-10-13", "2025-10-18"];
-    const today = new Date().toISOString().split('T')[0];
-    setIsEventLive(EVENT_DAYS.includes(today));
-  }, []);
+  // Event dates (YYYY-MM-DD)
+  const DAY_ONE_DATE = "2025-10-11";
+  const DAY_TWO_DATE = "2025-10-18";
 
+  // Determine if today is an event day
+  const today = new Date().toISOString().split('T')[0];
+  const isDayOneLive = DAY_ONE_LIVE_OVERRIDE || today === DAY_ONE_DATE;
+  const isDayTwoLive = DAY_TWO_LIVE_OVERRIDE || today === DAY_TWO_DATE;
+  const isAnyDayLive = isDayOneLive || isDayTwoLive;
+
+  // Countdown timer
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
@@ -127,7 +137,7 @@ export default function Hero() {
         position: 'relative'
       }}
     >
-      {isEventLive && (
+      {isAnyDayLive && (
         <div
           style={{
             position: 'absolute',
@@ -402,10 +412,15 @@ export default function Hero() {
             color: '#FF2A6D',
           }}
         >
-          {/* 🔐 Password-protected Day One */}
+          {/* 🔐 Day One: Only active if live */}
           <div
-            onClick={handleDayOneClick}
-            style={{ width: '320px', cursor: 'pointer' }}
+            onClick={isDayOneLive ? handleDayOneClick : undefined}
+            style={{
+              width: '320px',
+              cursor: isDayOneLive ? 'pointer' : 'not-allowed',
+              opacity: isDayOneLive ? 1 : 0.5,
+              pointerEvents: isDayOneLive ? 'auto' : 'none'
+            }}
           >
             <EventCard
               day="October 11, 2025"
@@ -416,24 +431,37 @@ export default function Hero() {
                   THE INITIAL PROTOCOL
                 </>
               }
-              link="#" // dummy link — navigation handled by onClick
-              isLive={false}
+              link="#"
+              isLive={isDayOneLive}
             />
           </div>
 
-          {/* Public Day Two */}
-          <EventCard
-            day="October 18, 2025"
-            title={
-              <>
-                <span>DAY TWO:</span>
-                <br />
-                THE FINAL PROTOCOL
-              </>
-            }
-            link="/day2"
-            isLive={false}
-          />
+          {/* Day Two: Only active if live */}
+          <a
+            href={isDayTwoLive ? "/day2" : "#"}
+            style={{
+              width: '320px',
+              textDecoration: 'none',
+              cursor: isDayTwoLive ? 'pointer' : 'not-allowed',
+              opacity: isDayTwoLive ? 1 : 0.5,
+              pointerEvents: isDayTwoLive ? 'auto' : 'none',
+              display: 'block',
+              color: '#FF2A6D',
+            }}
+          >
+            <EventCard
+              day="October 18, 2025"
+              title={
+                <>
+                  <span>DAY TWO:</span>
+                  <br />
+                  THE FINAL PROTOCOL
+                </>
+              }
+              link={isDayTwoLive ? "/day2" : "#"}
+              isLive={isDayTwoLive}
+            />
+          </a>
         </div>
       </div>
     </section>
