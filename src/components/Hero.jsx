@@ -417,7 +417,7 @@ export default function Hero() {
                 </>
               }
               link="#" // dummy link — navigation handled by onClick
-              isLive={false}
+              isLive={true}
             />
           </div>
 
