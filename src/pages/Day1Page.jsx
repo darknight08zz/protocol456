@@ -1,61 +1,24 @@
 // src/pages/Day1Page.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Day1Page() {
     const navigate = useNavigate();
-    const FORMSPREE_URL = "https://formspree.io/f/movkwzpg"; // Cleaned: no trailing spaces
+    const FORMSPREE_URL = "https://formspree.io/f/movkwzpg";
 
-    // 🔴 DEFAULT SLOTS — ONLY circle, triangle, square, star
-    const DEFAULT_SLOTS = {
-        circle: 10,
-        triangle: 10,
-        square: 10,
-        star: 10,
-        total: 40
-    };
-
-    // Load slots from localStorage or use defaults
-    const loadSlots = () => {
-        try {
-            const saved = localStorage.getItem('protocol456_slots');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                // Ensure 'star' exists (in case old data had 'umbrella')
-                if (parsed.star === undefined) {
-                    return DEFAULT_SLOTS;
-                }
-                return parsed;
-            }
-        } catch (e) {
-            console.warn('Failed to parse slots, using defaults');
-        }
-        return DEFAULT_SLOTS;
-    };
-
-    const [slots, setSlots] = useState(loadSlots());
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
         university: '',
-        playerId: '' // ✅ NEW FIELD
+        playerId: ''
     });
     const [selectedShape, setSelectedShape] = useState(null);
     const [bookingStatus, setBookingStatus] = useState(null);
     const [error, setError] = useState('');
-    const [currentRound, setCurrentRound] = useState('round1'); // 'round1' or 'round2'
+    const [currentRound, setCurrentRound] = useState('round1');
 
-    // Save slots to localStorage on change
-    useEffect(() => {
-        try {
-            localStorage.setItem('protocol456_slots', JSON.stringify(slots));
-        } catch (e) {
-            console.error('Failed to save slots');
-        }
-    }, [slots]);
-
-    // Shape definitions — STAR INCLUDED
+    // Shape definitions
     const shapes = [
         { id: 'circle', name: 'Circle', color: '#FF2A6D', symbol: '●' },
         { id: 'triangle', name: 'Triangle', color: '#1221cdff', symbol: '▲' },
@@ -72,14 +35,6 @@ export default function Day1Page() {
     const validateForm = () => {
         if (!selectedShape) {
             setError('Please select a shape.');
-            return false;
-        }
-        if (slots.total <= 0) {
-            setError('Event is fully booked.');
-            return false;
-        }
-        if (slots[selectedShape] <= 0) {
-            setError('This shape is fully booked.');
             return false;
         }
         if (!formData.name.trim()) {
@@ -134,15 +89,9 @@ export default function Day1Page() {
             });
 
             if (response.ok) {
-                const newSlots = {
-                    ...slots,
-                    [selectedShape]: slots[selectedShape] - 1,
-                    total: slots.total - 1
-                };
-                setSlots(newSlots);
                 setBookingStatus('success');
 
-                // 🔁 Redirect to shape-specific page after success
+                // Redirect to shape-specific page after success
                 const shapeRoutes = {
                     circle: '/circle',
                     triangle: '/triangle',
@@ -251,17 +200,8 @@ export default function Day1Page() {
                         ROUND ONE: SHAPE OF FATE
                     </h1>
 
-                    <p style={{
-                        color: '#ddd',
-                        fontSize: '1.2rem',
-                        marginBottom: '1.5rem',
-                        fontFamily: "'Orbitron', sans-serif"
-                    }}>
-                        Total members left: <span className="neon-text">{slots.total}</span>
-                    </p>
-
                     <p style={{ color: '#ddd', fontSize: '1.3rem', maxWidth: '650px', marginBottom: '2rem', lineHeight: 1.6 }}>
-                        Choose your path. Each shape has limited slots.
+                        Choose your path. Each shape represents a different journey.
                     </p>
 
                     {/* SHAPE CARDS */}
@@ -272,54 +212,38 @@ export default function Day1Page() {
                         justifyContent: 'center',
                         marginBottom: '2.5rem'
                     }}>
-                        {shapes.map(shape => {
-                            const isAvailable = slots[shape.id] > 0 && slots.total > 0;
-                            return (
-                                <div
-                                    key={shape.id}
-                                    onClick={() => {
-                                        if (isAvailable) {
-                                            setSelectedShape(shape.id);
-                                        }
-                                    }}
-                                    style={{
-                                        width: '130px',
-                                        height: '130px',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        backgroundColor: selectedShape === shape.id
-                                            ? `${shape.color}33`
-                                            : 'rgba(10, 20, 30, 0.6)',
-                                        border: `2px solid ${selectedShape === shape.id
-                                            ? shape.color
-                                            : isAvailable ? '#333' : '#555'
-                                            }`,
-                                        borderRadius: '12px',
-                                        cursor: isAvailable ? 'pointer' : 'not-allowed',
-                                        opacity: isAvailable ? 1 : 0.5,
-                                        transition: 'all 0.3s ease',
-                                        color: shape.color,
-                                        fontFamily: "'Orbitron', sans-serif",
-                                        fontSize: '1.1rem'
-                                    }}
-                                >
-                                    <div style={{ fontSize: '2.8rem', marginBottom: '0.4rem' }}>
-                                        {shape.symbol}
-                                    </div>
-                                    <div>{shape.name}</div>
-                                    <div style={{
-                                        fontSize: '0.75rem',
-                                        marginTop: '0.3rem',
-                                        color: '#aaa',
-                                        opacity: 0.9
-                                    }}>
-                                        ({slots[shape.id]} left)
-                                    </div>
+                        {shapes.map(shape => (
+                            <div
+                                key={shape.id}
+                                onClick={() => setSelectedShape(shape.id)}
+                                style={{
+                                    width: '130px',
+                                    height: '130px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    backgroundColor: selectedShape === shape.id
+                                        ? `${shape.color}33`
+                                        : 'rgba(10, 20, 30, 0.6)',
+                                    border: `2px solid ${selectedShape === shape.id
+                                        ? shape.color
+                                        : '#333'
+                                        }`,
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    color: shape.color,
+                                    fontFamily: "'Orbitron', sans-serif",
+                                    fontSize: '1.1rem'
+                                }}
+                            >
+                                <div style={{ fontSize: '2.8rem', marginBottom: '0.4rem' }}>
+                                    {shape.symbol}
                                 </div>
-                            );
-                        })}
+                                <div>{shape.name}</div>
+                            </div>
+                        ))}
                     </div>
 
                     <form onSubmit={handleSubmit} style={{
@@ -366,7 +290,6 @@ export default function Day1Page() {
                             style={inputStyle}
                             required
                         />
-                        {/* ✅ NEW PLAYER ID INPUT */}
                         <input
                             type="text"
                             name="playerId"
@@ -385,12 +308,12 @@ export default function Day1Page() {
 
                         <button
                             type="submit"
-                            disabled={bookingStatus === 'submitting' || !selectedShape || slots.total <= 0}
+                            disabled={bookingStatus === 'submitting' || !selectedShape}
                             className="glow-button"
                             style={{
                                 padding: '14px 40px',
                                 fontSize: '1.2rem',
-                                opacity: (selectedShape && slots.total > 0 && bookingStatus !== 'submitting') ? 1 : 0.6
+                                opacity: (selectedShape && bookingStatus !== 'submitting') ? 1 : 0.6
                             }}
                         >
                             {bookingStatus === 'submitting' ? 'CONFIRMING...' : 'CONFIRM PATH'}
@@ -445,7 +368,7 @@ export default function Day1Page() {
                             padding: '10px 20px',
                             borderRadius: '8px',
                             cursor: 'pointer',
-                            fontFamily: "'Orbitron', sans-serif",
+                            fontFamily: "'Orbitron', sans-serif'",
                             fontSize: '1.1rem',
                             fontWeight: 'bold'
                         }}
@@ -453,32 +376,6 @@ export default function Day1Page() {
                         GO TO ROUND 2
                     </button>
                 </div>
-            )}
-
-            {/* 🔑 ADMIN RESET BUTTON — ENABLED FOR TESTING */}
-            {true && (
-                <button
-                    onClick={() => {
-                        if (window.confirm('Reset all slots to default?')) {
-                            localStorage.removeItem('protocol456_slots');
-                            window.location.reload();
-                        }
-                    }}
-                    style={{
-                        marginTop: '2rem',
-                        padding: '8px 16px',
-                        backgroundColor: 'var(--neon-red)',
-                        color: 'black',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        fontFamily: "'Orbitron', sans-serif",
-                        fontSize: '0.9rem'
-                    }}
-                >
-                    🔑 RESET ALL SLOTS (Admin)
-                </button>
             )}
         </section>
     );
@@ -490,7 +387,7 @@ const inputStyle = {
     border: '1px solid #333',
     borderRadius: '6px',
     color: 'white',
-    fontFamily: "'Roboto', sans-serif",
+    fontFamily: "'Roboto', sans-serif'",
     fontSize: '1rem',
     outline: 'none'
 };
