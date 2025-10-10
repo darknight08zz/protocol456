@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Day1Page() {
     const navigate = useNavigate();
-    const FORMSPREE_URL = "https://formspree.io/f/movkwzpg";
+    const FORMSPREE_URL = "https://formspree.io/f/xvgwwwqd";
 
     const [formData, setFormData] = useState({
         name: '',
