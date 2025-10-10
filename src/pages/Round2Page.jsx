@@ -1,12 +1,12 @@
 // src/pages/Round2Page.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ref, onValue, set, get, serverTimestamp } from 'firebase/database';
+import { ref, onValue, set, get, serverTimestamp, remove } from 'firebase/database';
 import { db } from '../firebase';
 
 const TOTAL_TEAMS = 10;
 const ROUNDS = 10;
-const ROUND_DURATION = 120; // 2 minutes in seconds
+const ROUND_DURATION = 120; // seconds
 const ROOM_ID = 'main-room';
 
 export default function Round2Page() {
@@ -23,14 +23,32 @@ export default function Round2Page() {
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION);
   const [timerActive, setTimerActive] = useState(false);
   const [finalScores, setFinalScores] = useState([]);
+  const [allTeams, setAllTeams] = useState([]); // Track actual joined teams
 
-  // Join game with unique team name
+  // Fetch all teams once on join
+  const fetchAllTeams = useCallback(async () => {
+    const teamsRef = ref(db, `rooms/${ROOM_ID}/teams`);
+    const snapshot = await get(teamsRef);
+    const teams = snapshot.val() ? Object.keys(snapshot.val()) : [];
+    setAllTeams(teams);
+  }, []);
+
+  // Join game with team limit enforcement
   const joinGame = useCallback(async () => {
     if (!teamName.trim()) return;
     const cleanName = teamName.trim();
-    const teamRef = ref(db, `rooms/${ROOM_ID}/teams/${cleanName}`);
-    const snapshot = await get(teamRef);
-    if (snapshot.exists()) {
+
+    // Fetch current teams
+    const teamsRef = ref(db, `rooms/${ROOM_ID}/teams`);
+    const snapshot = await get(teamsRef);
+    const existingTeams = snapshot.val() ? Object.keys(snapshot.val()) : [];
+
+    if (existingTeams.length >= TOTAL_TEAMS) {
+      alert('Game is full! Only 10 teams allowed.');
+      return;
+    }
+
+    if (existingTeams.includes(cleanName)) {
       alert('Team name already taken! Please choose a unique name.');
       return;
     }
@@ -43,14 +61,14 @@ export default function Round2Page() {
         .filter(m => m),
       joinedAt: serverTimestamp(),
     };
-    await set(teamRef, teamData);
+    await set(ref(db, `rooms/${ROOM_ID}/teams/${cleanName}`), teamData);
     setHasJoined(true);
+    setAllTeams([...existingTeams, cleanName]);
   }, [teamName, teamMembers]);
 
-  // Submit choice to Firebase
   const submitChoice = useCallback(
     async (choice) => {
-      if (!hasJoined) return;
+      if (!hasJoined || !allTeams.includes(teamName)) return;
       const choiceRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}/choices/${teamName}`);
       await set(choiceRef, {
         choice,
@@ -58,15 +76,25 @@ export default function Round2Page() {
       });
       setUserChoice(choice);
     },
-    [teamName, currentRound, hasJoined]
+    [teamName, currentRound, hasJoined, allTeams]
   );
 
-  // Process round results and update scores
+  // Process results (only called when exactly 10 valid choices exist)
   const processResults = useCallback(
     async (allChoices) => {
-      const selfishCount = Object.values(allChoices).filter((c) => c.choice === 'selfish').length;
+      // Only consider choices from valid teams
+      const validChoices = {};
+      Object.keys(allChoices)
+        .filter(team => allTeams.includes(team))
+        .forEach(team => {
+          validChoices[team] = allChoices[team];
+        });
+
+      if (Object.keys(validChoices).length !== TOTAL_TEAMS) return;
+
+      const selfishCount = Object.values(validChoices).filter(c => c.choice === 'selfish').length;
       const coopCount = TOTAL_TEAMS - selfishCount;
-      const userChoiceHere = allChoices[teamName]?.choice;
+      const userChoiceHere = validChoices[teamName]?.choice;
 
       let userPoints = 0;
       let resultMessage = '';
@@ -93,7 +121,7 @@ export default function Round2Page() {
         }
       }
 
-      // Save round points
+      // Save round points (for debugging, even if hidden)
       const roundPointsRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}/points/${teamName}`);
       await set(roundPointsRef, userPoints);
 
@@ -104,40 +132,49 @@ export default function Round2Page() {
       const newTotal = currentTotal + userPoints;
       await set(totalScoreRef, newTotal);
 
-      setRoundResult({
-        userChoice: userChoiceHere,
-        selfishCount,
-        userPoints,
-        message: resultMessage,
-      });
-      setShowResults(true);
+      // Only show results for rounds 1–5
+      if (currentRound <= 5) {
+        setRoundResult({
+          userChoice: userChoiceHere,
+          selfishCount,
+          userPoints,
+          message: resultMessage,
+        });
+        setShowResults(true);
+      } else {
+        // For rounds 6–10: auto-proceed without showing results
+        setTimeout(() => {
+          handleNextRound();
+        }, 2000); // Brief pause before next round
+      }
     },
-    [teamName, currentRound]
+    [teamName, currentRound, allTeams]
   );
 
-  // Timer effect
+  // Timer logic
   useEffect(() => {
     let interval = null;
     if (timerActive && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+        setTimeLeft(prev => prev - 1);
       }, 1000);
     } else if (timeLeft === 0 && hasJoined) {
-      const isSubmitted = choices[teamName] !== undefined;
-      if (!isSubmitted) {
-        submitChoice('cooperate'); // auto-submit as cooperate
+      if (!choices[teamName]) {
+        submitChoice('cooperate');
       }
     }
     return () => clearInterval(interval);
   }, [timerActive, timeLeft, hasJoined, choices, teamName, submitChoice]);
 
-  // Listen to round data
+  // Listen to round choices
   useEffect(() => {
     if (!hasJoined) return;
 
-    // Reset timer for new round
     setTimeLeft(ROUND_DURATION);
     setTimerActive(true);
+    setUserChoice(choices[teamName]?.choice || null);
+    setShowResults(false);
+    setRoundResult(null);
 
     const roundRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}`);
     const unsubscribe = onValue(roundRef, (snapshot) => {
@@ -145,8 +182,9 @@ export default function Round2Page() {
       const currentChoices = data?.choices || {};
       setChoices(currentChoices);
 
-      const submittedCount = Object.keys(currentChoices).length;
-      if (submittedCount === TOTAL_TEAMS && !showResults) {
+      // Count only valid team submissions
+      const validSubmissions = Object.keys(currentChoices).filter(team => allTeams.includes(team));
+      if (validSubmissions.length === TOTAL_TEAMS && !showResults) {
         processResults(currentChoices);
       }
     });
@@ -155,9 +193,9 @@ export default function Round2Page() {
       unsubscribe();
       setTimerActive(false);
     };
-  }, [currentRound, showResults, hasJoined, processResults]);
+  }, [currentRound, showResults, hasJoined, allTeams, processResults, teamName, choices]);
 
-  // Fetch final scores after last round
+  // Final scores after Round 10
   useEffect(() => {
     if (currentRound === ROUNDS && showResults) {
       const scoresRef = ref(db, `rooms/${ROOM_ID}/scores`);
@@ -177,19 +215,19 @@ export default function Round2Page() {
       navigate('/');
       return;
     }
+    setCurrentRound(prev => prev + 1);
     setUserChoice(null);
     setShowResults(false);
     setRoundResult(null);
-    setCurrentRound((prev) => prev + 1);
   };
 
   const isMyChoiceSubmitted = choices[teamName] !== undefined;
   const parsedMembers = teamMembers
     .split(',')
-    .map((m) => m.trim())
-    .filter((m) => m);
+    .map(m => m.trim())
+    .filter(m => m);
 
-  // Team registration screen
+  // Registration screen
   if (!hasJoined) {
     return (
       <div
@@ -206,11 +244,13 @@ export default function Round2Page() {
         }}
       >
         <h2>🌐 ROUND 2: NETWORK STRATEGY</h2>
-        <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>Enter your team info to join the game</p>
+        <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>
+          Only <strong>10 teams</strong> allowed. Enter your team info to join.
+        </p>
 
         <input
           type="text"
-          placeholder="Team Name (e.g., Team Alpha)"
+          placeholder="Team Name"
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
           style={{
@@ -265,7 +305,6 @@ export default function Round2Page() {
     );
   }
 
-  // Game screen
   return (
     <div
       style={{
@@ -343,36 +382,40 @@ export default function Round2Page() {
           )}
 
           <p style={{ color: '#aaa' }}>
-            Teams submitted: <strong>{Object.keys(choices).length} / {TOTAL_TEAMS}</strong>
+            Teams submitted: <strong>{Object.keys(choices).filter(t => allTeams.includes(t)).length} / {TOTAL_TEAMS}</strong>
           </p>
         </>
       ) : (
-        <div
-          style={{
-            backgroundColor: 'rgba(10, 20, 30, 0.8)',
-            border: '2px solid #00F5D4',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            margin: '1.5rem 0',
-            maxWidth: '550px',
-            textAlign: 'center',
-          }}
-        >
-          <p>
-            <strong>Your choice:</strong>{' '}
-            {roundResult.userChoice === 'cooperate' ? '🟩 Cooperate' : '🟥 Selfish'}
-          </p>
-          <p>
-            <strong>Selfish teams:</strong> {roundResult.selfishCount} / {TOTAL_TEAMS}
-          </p>
-          <p style={{ color: roundResult.userPoints >= 0 ? '#00F5D4' : '#FF2A6D' }}>
-            Points this round: {roundResult.userPoints}
-          </p>
-          <p>{roundResult.message}</p>
-        </div>
+        // Only show this for Rounds 1–5
+        currentRound <= 5 && (
+          <div
+            style={{
+              backgroundColor: 'rgba(10, 20, 30, 0.8)',
+              border: '2px solid #00F5D4',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              margin: '1.5rem 0',
+              maxWidth: '550px',
+              textAlign: 'center',
+            }}
+          >
+            <p>
+              <strong>Your choice:</strong>{' '}
+              {roundResult.userChoice === 'cooperate' ? '🟩 Cooperate' : '🟥 Selfish'}
+            </p>
+            <p>
+              <strong>Selfish teams:</strong> {roundResult.selfishCount} / {TOTAL_TEAMS}
+            </p>
+            <p style={{ color: roundResult.userPoints >= 0 ? '#00F5D4' : '#FF2A6D' }}>
+              Points this round: {roundResult.userPoints}
+            </p>
+            <p>{roundResult.message}</p>
+          </div>
+        )
       )}
 
-      {showResults && (
+      {/* Show "Next Round" button only when results are ready */}
+      {(showResults || (currentRound > 5 && Object.keys(choices).filter(t => allTeams.includes(t)).length === TOTAL_TEAMS)) && (
         <button
           onClick={handleNextRound}
           style={{
