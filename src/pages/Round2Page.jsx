@@ -1,7 +1,7 @@
 // src/pages/Round2Page.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ref, onValue, set, get, serverTimestamp, remove } from 'firebase/database';
+import { ref, onValue, set, get, serverTimestamp } from 'firebase/database';
 import { db } from '../firebase';
 
 const TOTAL_TEAMS = 10;
@@ -23,53 +23,65 @@ export default function Round2Page() {
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION);
   const [timerActive, setTimerActive] = useState(false);
   const [finalScores, setFinalScores] = useState([]);
-  const [allTeams, setAllTeams] = useState([]); // Track actual joined teams
+  const [allTeams, setAllTeams] = useState([]);
 
-  // Fetch all teams once on join
-  const fetchAllTeams = useCallback(async () => {
-    const teamsRef = ref(db, `rooms/${ROOM_ID}/teams`);
-    const snapshot = await get(teamsRef);
-    const teams = snapshot.val() ? Object.keys(snapshot.val()) : [];
-    setAllTeams(teams);
+  // Fetch all teams on mount (if already joined)
+  useEffect(() => {
+    const fetchTeams = async () => {
+      const teamsRef = ref(db, `rooms/${ROOM_ID}/teams`);
+      const snapshot = await get(teamsRef);
+      const teams = snapshot.val() ? Object.keys(snapshot.val()) : [];
+      setAllTeams(teams);
+    };
+    fetchTeams();
   }, []);
 
-  // Join game with team limit enforcement
   const joinGame = useCallback(async () => {
-    if (!teamName.trim()) return;
     const cleanName = teamName.trim();
-
-    // Fetch current teams
-    const teamsRef = ref(db, `rooms/${ROOM_ID}/teams`);
-    const snapshot = await get(teamsRef);
-    const existingTeams = snapshot.val() ? Object.keys(snapshot.val()) : [];
-
-    if (existingTeams.length >= TOTAL_TEAMS) {
-      alert('Game is full! Only 10 teams allowed.');
+    if (!cleanName) {
+      alert('Please enter a team name.');
       return;
     }
 
-    if (existingTeams.includes(cleanName)) {
-      alert('Team name already taken! Please choose a unique name.');
-      return;
-    }
+    try {
+      const teamsRef = ref(db, `rooms/${ROOM_ID}/teams`);
+      const snapshot = await get(teamsRef);
+      const existingTeams = snapshot.val() ? Object.keys(snapshot.val()) : [];
 
-    const teamData = {
-      name: cleanName,
-      members: teamMembers
+      if (existingTeams.length >= TOTAL_TEAMS) {
+        alert('Game is full! Only 10 teams allowed.');
+        return;
+      }
+
+      if (existingTeams.includes(cleanName)) {
+        alert('Team name already taken! Please choose a unique name.');
+        return;
+      }
+
+      const membersArray = teamMembers
         .split(',')
         .map(m => m.trim())
-        .filter(m => m),
-      joinedAt: serverTimestamp(),
-    };
-    await set(ref(db, `rooms/${ROOM_ID}/teams/${cleanName}`), teamData);
-    setHasJoined(true);
-    setAllTeams([...existingTeams, cleanName]);
+        .filter(m => m); // Allow empty, but filter blanks
+
+      await set(ref(db, `rooms/${ROOM_ID}/teams/${cleanName}`), {
+        name: cleanName,
+        members: membersArray,
+        joinedAt: serverTimestamp(),
+      });
+
+      setAllTeams([...existingTeams, cleanName]);
+      setHasJoined(true);
+    } catch (error) {
+      console.error('Join failed:', error);
+      alert('Failed to join. Check console for details.');
+    }
   }, [teamName, teamMembers]);
 
   const submitChoice = useCallback(
     async (choice) => {
-      if (!hasJoined || !allTeams.includes(teamName)) return;
-      const choiceRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}/choices/${teamName}`);
+      if (!hasJoined || !allTeams.includes(teamName.trim())) return;
+      const cleanName = teamName.trim();
+      const choiceRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}/choices/${cleanName}`);
       await set(choiceRef, {
         choice,
         submittedAt: serverTimestamp(),
@@ -79,10 +91,8 @@ export default function Round2Page() {
     [teamName, currentRound, hasJoined, allTeams]
   );
 
-  // Process results (only called when exactly 10 valid choices exist)
   const processResults = useCallback(
     async (allChoices) => {
-      // Only consider choices from valid teams
       const validChoices = {};
       Object.keys(allChoices)
         .filter(team => allTeams.includes(team))
@@ -92,9 +102,10 @@ export default function Round2Page() {
 
       if (Object.keys(validChoices).length !== TOTAL_TEAMS) return;
 
+      const cleanName = teamName.trim();
       const selfishCount = Object.values(validChoices).filter(c => c.choice === 'selfish').length;
       const coopCount = TOTAL_TEAMS - selfishCount;
-      const userChoiceHere = validChoices[teamName]?.choice;
+      const userChoiceHere = validChoices[cleanName]?.choice;
 
       let userPoints = 0;
       let resultMessage = '';
@@ -121,18 +132,17 @@ export default function Round2Page() {
         }
       }
 
-      // Save round points (for debugging, even if hidden)
-      const roundPointsRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}/points/${teamName}`);
+      // Save round points (for Rounds 1–5 visibility, or debugging)
+      const roundPointsRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}/points/${cleanName}`);
       await set(roundPointsRef, userPoints);
 
       // Update total score
-      const totalScoreRef = ref(db, `rooms/${ROOM_ID}/scores/${teamName}`);
+      const totalScoreRef = ref(db, `rooms/${ROOM_ID}/scores/${cleanName}`);
       const totalSnap = await get(totalScoreRef);
       const currentTotal = totalSnap.exists() ? totalSnap.val() : 0;
       const newTotal = currentTotal + userPoints;
       await set(totalScoreRef, newTotal);
 
-      // Only show results for rounds 1–5
       if (currentRound <= 5) {
         setRoundResult({
           userChoice: userChoiceHere,
@@ -142,16 +152,16 @@ export default function Round2Page() {
         });
         setShowResults(true);
       } else {
-        // For rounds 6–10: auto-proceed without showing results
+        // Auto-proceed for Rounds 6–10
         setTimeout(() => {
           handleNextRound();
-        }, 2000); // Brief pause before next round
+        }, 1500);
       }
     },
     [teamName, currentRound, allTeams]
   );
 
-  // Timer logic
+  // Timer
   useEffect(() => {
     let interval = null;
     if (timerActive && timeLeft > 0) {
@@ -159,22 +169,25 @@ export default function Round2Page() {
         setTimeLeft(prev => prev - 1);
       }, 1000);
     } else if (timeLeft === 0 && hasJoined) {
-      if (!choices[teamName]) {
+      const cleanName = teamName.trim();
+      if (!choices[cleanName]) {
         submitChoice('cooperate');
       }
     }
     return () => clearInterval(interval);
   }, [timerActive, timeLeft, hasJoined, choices, teamName, submitChoice]);
 
-  // Listen to round choices
+  // Listen to round data
   useEffect(() => {
     if (!hasJoined) return;
 
     setTimeLeft(ROUND_DURATION);
     setTimerActive(true);
-    setUserChoice(choices[teamName]?.choice || null);
     setShowResults(false);
     setRoundResult(null);
+
+    const cleanName = teamName.trim();
+    setUserChoice(choices[cleanName]?.choice || null);
 
     const roundRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}`);
     const unsubscribe = onValue(roundRef, (snapshot) => {
@@ -182,7 +195,6 @@ export default function Round2Page() {
       const currentChoices = data?.choices || {};
       setChoices(currentChoices);
 
-      // Count only valid team submissions
       const validSubmissions = Object.keys(currentChoices).filter(team => allTeams.includes(team));
       if (validSubmissions.length === TOTAL_TEAMS && !showResults) {
         processResults(currentChoices);
@@ -221,7 +233,8 @@ export default function Round2Page() {
     setRoundResult(null);
   };
 
-  const isMyChoiceSubmitted = choices[teamName] !== undefined;
+  const cleanTeamName = teamName.trim();
+  const isMyChoiceSubmitted = choices[cleanTeamName] !== undefined;
   const parsedMembers = teamMembers
     .split(',')
     .map(m => m.trim())
@@ -250,7 +263,7 @@ export default function Round2Page() {
 
         <input
           type="text"
-          placeholder="Team Name"
+          placeholder="Team Name (e.g., Team Alpha)"
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
           style={{
@@ -320,7 +333,7 @@ export default function Round2Page() {
     >
       <h2>ROUND {currentRound} / {ROUNDS}</h2>
       <p style={{ color: '#ddd', marginBottom: '0.5rem' }}>
-        <strong>Team:</strong> {teamName}
+        <strong>Team:</strong> {cleanTeamName}
       </p>
       {parsedMembers.length > 0 && (
         <p style={{ color: '#aaa', fontSize: '0.95rem', marginBottom: '1rem' }}>
@@ -386,7 +399,6 @@ export default function Round2Page() {
           </p>
         </>
       ) : (
-        // Only show this for Rounds 1–5
         currentRound <= 5 && (
           <div
             style={{
@@ -414,7 +426,6 @@ export default function Round2Page() {
         )
       )}
 
-      {/* Show "Next Round" button only when results are ready */}
       {(showResults || (currentRound > 5 && Object.keys(choices).filter(t => allTeams.includes(t)).length === TOTAL_TEAMS)) && (
         <button
           onClick={handleNextRound}
