@@ -233,7 +233,7 @@ export default function Day1Page() {
                         transition: 'all 0.2s'
                     }}
                 >
-                    ROUND 2: NEXT PHASE
+                    ROUND 2: PRISONER'S PROTOCOL DILEMMA
                 </button>
             </div>
 

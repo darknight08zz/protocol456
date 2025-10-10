@@ -416,7 +416,7 @@ export default function Round2Page() {
           <BackButtons />
         </div>
 
-        <h2>🌐 ROUND 2: NETWORK STRATEGY</h2>
+        <h2>🌐 ROUND 2: PRISONER'S PROTOCOL DILEMMA</h2>
         <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>Only <strong>10 teams</strong> allowed.</p>
 
         <input
