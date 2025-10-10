@@ -82,6 +82,7 @@ Examples:
     const [selectedProblem, setSelectedProblem] = useState(null);
     const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
     const [isTimerActive, setIsTimerActive] = useState(false);
+    const [timeUp, setTimeUp] = useState(false); // Track if time is up
 
     // Submission state
     const [playerId, setPlayerId] = useState('');
@@ -105,13 +106,23 @@ Examples:
         };
     }, []);
 
+    // Modified useEffect to handle time up
     useEffect(() => {
         if (isTimerActive && timeLeft > 0) {
             timerRef.current = setInterval(() => {
-                setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1));
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                        // Time is up
+                        setIsTimerActive(false);
+                        setTimeUp(true);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
             }, 1000);
         } else if (timeLeft === 0) {
             setIsTimerActive(false);
+            setTimeUp(true);
         }
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
@@ -433,22 +444,28 @@ Examples:
 
                         <button
                             type="submit"
+                            disabled={timeUp} // Only disable submit button when time is up
                             style={{
                                 padding: '12px 28px',
-                                backgroundColor: '#00FF00',
+                                backgroundColor: timeUp ? '#666' : '#00FF00',
                                 color: '#000',
                                 border: 'none',
                                 borderRadius: '6px',
                                 fontFamily: "'Orbitron', sans-serif",
                                 fontSize: '1.15rem',
                                 fontWeight: 'bold',
-                                cursor: 'pointer',
-                                transition: 'background 0.2s'
+                                cursor: timeUp ? 'not-allowed' : 'pointer',
+                                transition: 'background 0.2s',
+                                opacity: timeUp ? 0.5 : 1
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#33ff33'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00FF00'}
+                            onMouseEnter={(e) => {
+                                if (!timeUp) e.currentTarget.style.backgroundColor = '#33ff33';
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!timeUp) e.currentTarget.style.backgroundColor = '#00FF00';
+                            }}
                         >
-                            ✅ SUBMIT ALL SOLUTIONS
+                            {timeUp ? 'TIME EXPIRED' : '✅ SUBMIT ALL SOLUTIONS'}
                         </button>
                     </form>
                 </div>

@@ -3,8 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ⏱️ STATIC CONFIG — SAFE TO CHANGE
-const TOTAL_SECONDS = 21 * 60; // 1260 seconds
-const ADMIN_PASSWORD = "protocol456";
+const TOTAL_SECONDS =21* 60; // 1260 seconds
 
 export default function CirclePage() {
     const navigate = useNavigate();
@@ -100,6 +99,7 @@ Examples:
     const [selectedProblem, setSelectedProblem] = useState(null);
     const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
     const [isTimerActive, setIsTimerActive] = useState(false);
+    const [timeUp, setTimeUp] = useState(false); // Track if time is up
 
     const [playerId, setPlayerId] = useState('');
     const [playerName, setPlayerName] = useState('');
@@ -123,13 +123,23 @@ Examples:
         };
     }, []);
 
+    // Modified useEffect to handle time up
     useEffect(() => {
         if (isTimerActive && timeLeft > 0) {
             timerRef.current = setInterval(() => {
-                setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1));
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                        // Time is up
+                        setIsTimerActive(false);
+                        setTimeUp(true);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
             }, 1000);
         } else if (timeLeft === 0) {
             setIsTimerActive(false);
+            setTimeUp(true);
         }
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
@@ -317,7 +327,7 @@ Examples:
                         <textarea
                             value={codeInputs[selectedProblem]}
                             onChange={(e) => handleCodeChange(selectedProblem, e.target.value)}
-                            placeholder="// Write your code here..."
+                            placeholder="// Write your C code here..."
                             style={{
                                 width: '100%',
                                 height: '120px',
@@ -414,7 +424,7 @@ Examples:
                             <label style={{
                                 display: 'block',
                                 color: shapeColor,
-                                fontFamily: "'Orbitron', sans-serif",
+                                fontFamily: "'Orbitron', sans-serif'",
                                 marginBottom: '0.6rem',
                                 fontSize: '1.1rem'
                             }}>
@@ -450,22 +460,28 @@ Examples:
 
                         <button
                             type="submit"
+                            disabled={timeUp} // Only disable submit button when time is up
                             style={{
                                 padding: '12px 28px',
-                                backgroundColor: '#00FF00',
+                                backgroundColor: timeUp ? '#666' : '#00FF00',
                                 color: '#000',
                                 border: 'none',
                                 borderRadius: '6px',
                                 fontFamily: "'Orbitron', sans-serif",
                                 fontSize: '1.15rem',
                                 fontWeight: 'bold',
-                                cursor: 'pointer',
-                                transition: 'background 0.2s'
+                                cursor: timeUp ? 'not-allowed' : 'pointer',
+                                transition: 'background 0.2s',
+                                opacity: timeUp ? 0.5 : 1
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#33ff33'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00FF00'}
+                            onMouseEnter={(e) => {
+                                if (!timeUp) e.currentTarget.style.backgroundColor = '#33ff33';
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!timeUp) e.currentTarget.style.backgroundColor = '#00FF00';
+                            }}
                         >
-                            ✅ SUBMIT ALL SOLUTIONS
+                            {timeUp ? 'TIME EXPIRED' : '✅ SUBMIT ALL SOLUTIONS'}
                         </button>
                     </form>
                 </div>
