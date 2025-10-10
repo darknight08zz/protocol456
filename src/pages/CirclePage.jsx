@@ -3,15 +3,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ⏱️ STATIC CONFIG — SAFE TO CHANGE
-const AUTO_START_TIMER = false; // 🔑 Set to `true` to auto-start timer on page load
-const TOTAL_SECONDS = 21 * 60; // 21 minutes = 1260 seconds
-const ADMIN_PASSWORD = "protocol456"; // Admin password to start timer manually
+const AUTO_START_TIMER = false;
+const TOTAL_SECONDS = 21 * 60; // 1260 seconds
+const ADMIN_PASSWORD = "protocol456";
 
 export default function CirclePage() {
     const navigate = useNavigate();
     const shapeColor = '#FF2A6D';
 
-    // ✅ Problem data: title + description (clean separation)
     const problemData = {
         1: {
             title: "Digital Root (Repeated Digital Sum)",
@@ -106,10 +105,19 @@ Examples:
     const [passwordInput, setPasswordInput] = useState('');
     const [passwordError, setPasswordError] = useState('');
 
+    const [playerId, setPlayerId] = useState('');
+    const [playerName, setPlayerName] = useState('');
+    const [codeInputs, setCodeInputs] = useState({
+        1: '',
+        2: '',
+        3: '',
+        4: '',
+        5: ''
+    });
+
     const timerRef = useRef(null);
     const hasAutoStarted = useRef(false);
 
-    // 🔁 EFFECT: Auto-start on mount
     useEffect(() => {
         if (AUTO_START_TIMER && !hasAutoStarted.current) {
             setIsTimerActive(true);
@@ -121,7 +129,6 @@ Examples:
         };
     }, []);
 
-    // 🔁 EFFECT: Manage active timer
     useEffect(() => {
         if (isTimerActive && timeLeft > 0) {
             timerRef.current = setInterval(() => {
@@ -157,10 +164,18 @@ Examples:
     };
 
     const openCompiler = () => {
+        // ✅ Fixed: removed trailing spaces in URL
         window.open('https://www.programiz.com/c-programming/online-compiler/', '_blank');
     };
 
     const handleProblemClick = (num) => setSelectedProblem(num);
+
+    const handleCodeChange = (problemNum, value) => {
+        setCodeInputs(prev => ({
+            ...prev,
+            [problemNum]: value
+        }));
+    };
 
     return (
         <div style={{
@@ -209,7 +224,7 @@ Examples:
                         padding: '8px 16px',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        fontFamily: "'Roboto', sans-serif",
+                        fontFamily: "'Roboto', sans-serif'",
                         fontSize: '0.95rem',
                         transition: 'all 0.2s'
                     }}
@@ -230,7 +245,7 @@ Examples:
                 background: 'rgba(0, 0, 0, 0.4)',
                 border: `2px solid ${isTimerActive ? (timeLeft <= 300 ? 'var(--neon-red)' : shapeColor) : '#555'}`,
                 borderRadius: '8px',
-                fontFamily: "'Orbitron', sans-serif",
+                fontFamily: "'Orbitron', sans-serif'",
                 fontSize: '1.4rem',
                 color: isTimerActive ? (timeLeft <= 300 ? 'var(--neon-red)' : shapeColor) : '#aaa'
             }}>
@@ -313,7 +328,7 @@ Examples:
                                         color: '#000',
                                         border: 'none',
                                         borderRadius: '4px',
-                                        fontFamily: "'Orbitron', sans-serif",
+                                        fontFamily: "'Orbitron', sans-serif'",
                                         cursor: 'pointer'
                                     }}
                                 >
@@ -328,7 +343,7 @@ Examples:
                                         color: '#aaa',
                                         border: '1px solid #555',
                                         borderRadius: '4px',
-                                        fontFamily: "'Orbitron', sans-serif",
+                                        fontFamily: "'Orbitron', sans-serif'",
                                         cursor: 'pointer'
                                     }}
                                 >
@@ -364,7 +379,7 @@ Examples:
                             border: `2px solid ${shapeColor}`,
                             color: shapeColor,
                             borderRadius: '6px',
-                            fontFamily: "'Orbitron', sans-serif",
+                            fontFamily: "'Orbitron', sans-serif'",
                             fontSize: '0.95rem',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
@@ -388,7 +403,6 @@ Examples:
                     marginTop: '1.5rem',
                     textAlign: 'left'
                 }}>
-                    {/* ✅ BOLD TITLE */}
                     <h3 style={{
                         color: shapeColor,
                         fontFamily: "'Orbitron', sans-serif",
@@ -399,7 +413,6 @@ Examples:
                         {problemData[selectedProblem].title}
                     </h3>
 
-                    {/* ✅ FORMATTED DESCRIPTION */}
                     <pre style={{
                         color: '#eee',
                         fontSize: '1.15rem',
@@ -416,7 +429,6 @@ Examples:
                         {problemData[selectedProblem].description}
                     </pre>
 
-                    {/* Code Text Area */}
                     <div style={{ marginBottom: '2rem' }}>
                         <label style={{
                             display: 'block',
@@ -428,6 +440,8 @@ Examples:
                             ✍️ Write your code here:
                         </label>
                         <textarea
+                            value={codeInputs[selectedProblem]}
+                            onChange={(e) => handleCodeChange(selectedProblem, e.target.value)}
                             placeholder="// Write your C code here..."
                             style={{
                                 width: '100%',
@@ -444,34 +458,7 @@ Examples:
                         />
                     </div>
 
-                    {/* Answer Text Area */}
-                    <div style={{ marginBottom: '2rem' }}>
-                        <label style={{
-                            display: 'block',
-                            color: shapeColor,
-                            fontFamily: "'Orbitron', sans-serif",
-                            marginBottom: '0.6rem',
-                            fontSize: '1.1rem'
-                        }}>
-                            📝 Write your answer / explanation here:
-                        </label>
-                        <textarea
-                            placeholder="Describe your approach, output, or logic..."
-                            style={{
-                                width: '100%',
-                                height: '100px',
-                                padding: '12px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                border: '1px solid #444',
-                                borderRadius: '6px',
-                                color: '#fff',
-                                fontFamily: "'Roboto', sans-serif",
-                                fontSize: '1rem',
-                                resize: 'vertical'
-                            }}
-                        />
-                    </div>
-
+                    {/* ✅ FIXED: Compiler button is now always visible when a problem is selected */}
                     <button
                         onClick={openCompiler}
                         style={{
@@ -491,6 +478,123 @@ Examples:
                     >
                         ➤ OPEN COMPILER
                     </button>
+                </div>
+            )}
+
+            {/* Submission form appears only when all 5 code boxes have content */}
+            {/* Submission form appears only when all 5 code boxes have content */}
+            {Object.values(codeInputs).every(code => code.trim() !== '') && (
+                <div style={{
+                    width: '100%',
+                    maxWidth: '800px',
+                    backgroundColor: 'rgba(10, 20, 30, 0.85)',
+                    border: `2px solid ${shapeColor}`,
+                    borderRadius: '12px',
+                    padding: '2rem',
+                    marginTop: '2rem',
+                    textAlign: 'left'
+                }}>
+                    <h3 style={{
+                        color: shapeColor,
+                        fontFamily: "'Orbitron', sans-serif",
+                        marginBottom: '1.5rem',
+                        fontSize: '1.8rem',
+                        fontWeight: 'bold'
+                    }}>
+                        📤 SUBMIT ALL SOLUTIONS
+                    </h3>
+
+                    <form action="https://formspree.io/f/xgvnnyon" method="POST">
+                        {/* ✅ REDIRECT AFTER SUBMIT */}
+                        <input type="hidden" name="_next" value="/day1" />
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{
+                                display: 'block',
+                                color: shapeColor,
+                                fontFamily: "'Orbitron', sans-serif",
+                                marginBottom: '0.6rem',
+                                fontSize: '1.1rem'
+                            }}>
+                                🆔 Player ID:
+                            </label>
+                            <input
+                                type="text"
+                                name="player_id"
+                                value={playerId}
+                                onChange={(e) => setPlayerId(e.target.value)}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                    border: '1px solid #444',
+                                    borderRadius: '6px',
+                                    color: '#fff',
+                                    fontFamily: "'Roboto', sans-serif",
+                                    fontSize: '1rem'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{
+                                display: 'block',
+                                color: shapeColor,
+                                fontFamily: "'Orbitron', sans-serif",
+                                marginBottom: '0.6rem',
+                                fontSize: '1.1rem'
+                            }}>
+                                👤 Name:
+                            </label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={playerName}
+                                onChange={(e) => setPlayerName(e.target.value)}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                    border: '1px solid #444',
+                                    borderRadius: '6px',
+                                    color: '#fff',
+                                    fontFamily: "'Roboto', sans-serif",
+                                    fontSize: '1rem'
+                                }}
+                            />
+                        </div>
+
+                        {Object.entries(codeInputs).map(([problemNum, code]) => (
+                            <input
+                                key={problemNum}
+                                type="hidden"
+                                name={`problem_${problemNum}_code`}
+                                value={code}
+                            />
+                        ))}
+
+                        <button
+                            type="submit"
+                            style={{
+                                padding: '12px 28px',
+                                backgroundColor: '#00FF00',
+                                color: '#000',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontFamily: "'Orbitron', sans-serif",
+                                fontSize: '1.15rem',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#33ff33'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00FF00'}
+                        >
+                            ✅ SUBMIT ALL SOLUTIONS
+                        </button>
+                    </form>
                 </div>
             )}
         </div>

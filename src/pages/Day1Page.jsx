@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Day1Page() {
     const navigate = useNavigate();
-    const FORMSPREE_URL = "https://formspree.io/f/movkwzpg"; // Ensure no trailing spaces
+    const FORMSPREE_URL = "https://formspree.io/f/movkwzpg"; // Cleaned: no trailing spaces
 
     // 🔴 DEFAULT SLOTS — ONLY circle, triangle, square, star
     const DEFAULT_SLOTS = {
@@ -38,7 +38,8 @@ export default function Day1Page() {
         name: '',
         email: '',
         phone: '',
-        university: ''
+        university: '',
+        playerId: '' // ✅ NEW FIELD
     });
     const [selectedShape, setSelectedShape] = useState(null);
     const [bookingStatus, setBookingStatus] = useState(null);
@@ -95,6 +96,10 @@ export default function Day1Page() {
         }
         if (!formData.university.trim()) {
             setError('Please enter your university.');
+            return false;
+        }
+        if (!formData.playerId.trim()) {
+            setError('Please enter your Player ID.');
             return false;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -240,7 +245,7 @@ export default function Day1Page() {
                         margin: 0,
                         letterSpacing: '1.5px',
                         transition: 'font-size 0.3s ease',
-                        color: '#FF2A6D', // or var(--neon-red)
+                        color: '#FF2A6D',
                         textShadow: '0 0 4px rgba(214, 34, 70, 0.5), 0 0 8px rgba(214, 34, 70, 0.3)'
                     }}>
                         ROUND ONE: SHAPE OF FATE
@@ -361,6 +366,16 @@ export default function Day1Page() {
                             style={inputStyle}
                             required
                         />
+                        {/* ✅ NEW PLAYER ID INPUT */}
+                        <input
+                            type="text"
+                            name="playerId"
+                            placeholder="Player ID"
+                            value={formData.playerId}
+                            onChange={handleInputChange}
+                            style={inputStyle}
+                            required
+                        />
 
                         {error && (
                             <p style={{ color: 'var(--neon-red)', fontSize: '0.95rem', marginTop: '-0.5rem' }}>
@@ -378,7 +393,7 @@ export default function Day1Page() {
                                 opacity: (selectedShape && slots.total > 0 && bookingStatus !== 'submitting') ? 1 : 0.6
                             }}
                         >
-                            {bookingStatus === 'submitting' ? 'BOOKING...' : 'CONFIRM PATH'}
+                            {bookingStatus === 'submitting' ? 'CONFIRMING...' : 'CONFIRM PATH'}
                         </button>
                     </form>
 
@@ -418,14 +433,24 @@ export default function Day1Page() {
                     margin: 0,
                     letterSpacing: '1.5px',
                     transition: 'font-size 0.3s ease',
-                    color: '#FF2A6D', // or var(--neon-red)
+                    color: '#FF2A6D',
                     textShadow: '0 0 4px rgba(214, 34, 70, 0.5), 0 0 8px rgba(214, 34, 70, 0.3)'
                 }}>
                     <button
                         onClick={() => navigate('/round2')}
-                        style={{ /* same style */ }}
+                        style={{
+                            background: 'var(--neon-teal)',
+                            color: '#000',
+                            border: '2px solid var(--neon-teal)',
+                            padding: '10px 20px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontFamily: "'Orbitron', sans-serif",
+                            fontSize: '1.1rem',
+                            fontWeight: 'bold'
+                        }}
                     >
-                        ROUND 2: NEXT PHASE
+                        GO TO ROUND 2
                     </button>
                 </div>
             )}

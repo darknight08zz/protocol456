@@ -346,6 +346,52 @@ export default function Round2Page() {
   const isMyChoiceSubmitted = choices[cleanName] !== undefined;
   const parsedMembers = teamMembers.split(',').map(m => m.trim()).filter(m => m);
 
+  // Reusable back buttons component
+  const BackButtons = () => (
+    <div style={{
+      display: 'flex',
+      gap: '0.8rem'
+    }}>
+      <button
+        onClick={() => navigate('/')}
+        style={{
+          background: 'transparent',
+          border: '1px solid #555',
+          color: '#aaa',
+          padding: '8px 16px',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontFamily: "'Roboto', sans-serif",
+          fontSize: '0.95rem',
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#aaa'}
+        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#555'}
+      >
+        ← Back to Home
+      </button>
+
+      <button
+        onClick={() => navigate('/day1')}
+        style={{
+          background: 'transparent',
+          border: '1px solid #555',
+          color: '#aaa',
+          padding: '8px 16px',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontFamily: "'Roboto', sans-serif",
+          fontSize: '0.95rem',
+          transition: 'all 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#00F5D4'}
+        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#555'}
+      >
+        ↺ Back to Rounds
+      </button>
+    </div>
+  );
+
   // Registration screen
   if (!hasJoined) {
     return (
@@ -358,8 +404,18 @@ export default function Round2Page() {
         justifyContent: 'center', 
         color: '#00F5D4', 
         fontFamily: "'Orbitron', sans-serif", 
-        padding: '2rem' 
+        padding: '2rem',
+        position: 'relative'
       }}>
+        {/* Back buttons in top-left during registration */}
+        <div style={{
+          position: 'absolute',
+          top: '2rem',
+          left: '2rem'
+        }}>
+          <BackButtons />
+        </div>
+
         <h2>🌐 ROUND 2: NETWORK STRATEGY</h2>
         <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>Only <strong>10 teams</strong> allowed.</p>
 
@@ -432,6 +488,14 @@ export default function Round2Page() {
       fontFamily: "'Orbitron', sans-serif", 
       padding: '2rem' 
     }}>
+      {/* Back buttons at top-left during gameplay */}
+      <div style={{
+        alignSelf: 'flex-start',
+        marginBottom: '1.5rem'
+      }}>
+        <BackButtons />
+      </div>
+
       <h2>ROUND {currentRound} / {ROUNDS}</h2>
       <p><strong>Team:</strong> {cleanName}</p>
       {parsedMembers.length > 0 && (
@@ -450,7 +514,6 @@ export default function Round2Page() {
         </p>
       )}
 
-      {/* Only show card selection if round is not completed and user hasn't submitted */}
       {!roundData.completed && !isMyChoiceSubmitted ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <p style={{ color: '#aaa', margin: '1rem 0' }}>
@@ -503,14 +566,12 @@ export default function Round2Page() {
         </div>
       ) : (
         <>
-          {/* Show submitted message if user has submitted but round isn't completed */}
           {!roundData.completed && isMyChoiceSubmitted && (
             <p style={{ color: '#aaa', margin: '1rem 0' }}>
               ✅ Submitted. Waiting for other teams...
             </p>
           )}
           
-          {/* Show results if round is completed */}
           {roundData.completed && currentRound <= 5 && roundResult && (
             <div style={{ 
               backgroundColor: 'rgba(10, 20, 30, 0.8)', 

@@ -3,13 +3,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ⏱️ STATIC CONFIG FOR SQUARE
-const AUTO_START_TIMER = false; // 🔑 Set to `true` to auto-start on load
-const TOTAL_SECONDS = 21 * 60; // 21 minutes = 1260 seconds
+const AUTO_START_TIMER = false;
+const TOTAL_SECONDS = 21 * 60; // 1260 seconds
 const ADMIN_PASSWORD = "protocol456";
 
 export default function SquarePage() {
     const navigate = useNavigate();
-    const shapeColor = '#00FFA3'; // Square color — now neon green
+    const shapeColor = '#00FFA3'; // Neon green
 
     const problemData = {
         1: {
@@ -88,10 +88,19 @@ Examples:
     const [passwordInput, setPasswordInput] = useState('');
     const [passwordError, setPasswordError] = useState('');
 
+    // ✅ NEW: Submission state
+    const [playerId, setPlayerId] = useState('');
+    const [playerName, setPlayerName] = useState('');
+    const [codeInputs, setCodeInputs] = useState({
+        1: '',
+        2: '',
+        3: '',
+        4: ''
+    });
+
     const timerRef = useRef(null);
     const hasAutoStarted = useRef(false);
 
-    // 🔁 Auto-start on mount
     useEffect(() => {
         if (AUTO_START_TIMER && !hasAutoStarted.current) {
             setIsTimerActive(true);
@@ -103,7 +112,6 @@ Examples:
         };
     }, []);
 
-    // 🔁 Manage active timer
     useEffect(() => {
         if (isTimerActive && timeLeft > 0) {
             timerRef.current = setInterval(() => {
@@ -139,10 +147,18 @@ Examples:
     };
 
     const openCompiler = () => {
+        // ✅ Fixed: removed trailing spaces
         window.open('https://www.programiz.com/c-programming/online-compiler/', '_blank');
     };
 
     const handleProblemClick = (num) => setSelectedProblem(num);
+
+    const handleCodeChange = (problemNum, value) => {
+        setCodeInputs(prev => ({
+            ...prev,
+            [problemNum]: value
+        }));
+    };
 
     return (
         <div style={{
@@ -202,7 +218,6 @@ Examples:
                 </button>
             </div>
 
-            {/* ✅ SQUARE PATH TITLE — neon pink */}
             <h1
                 className="neon-text"
                 style={{
@@ -319,7 +334,7 @@ Examples:
                                         color: '#aaa',
                                         border: '1px solid #555',
                                         borderRadius: '4px',
-                                        fontFamily: "'Orbitron', sans-serif'",
+                                        fontFamily: "'Orbitron', sans-serif",
                                         cursor: 'pointer'
                                     }}
                                 >
@@ -336,7 +351,6 @@ Examples:
                 Select a problem below to begin your trial.
             </p>
 
-            {/* 4 PROBLEM BUTTONS IN ONE LINE */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'center',
@@ -417,6 +431,8 @@ Examples:
                             ✍️ Write your code here:
                         </label>
                         <textarea
+                            value={codeInputs[selectedProblem]}
+                            onChange={(e) => handleCodeChange(selectedProblem, e.target.value)}
                             placeholder="// Write your C code here..."
                             style={{
                                 width: '100%',
@@ -433,32 +449,7 @@ Examples:
                         />
                     </div>
 
-                    <div style={{ marginBottom: '2rem' }}>
-                        <label style={{
-                            display: 'block',
-                            color: shapeColor,
-                            fontFamily: "'Orbitron', sans-serif",
-                            marginBottom: '0.6rem',
-                            fontSize: '1.1rem'
-                        }}>
-                            📝 Write your answer / explanation here:
-                        </label>
-                        <textarea
-                            placeholder="Describe your approach, output, or logic..."
-                            style={{
-                                width: '100%',
-                                height: '100px',
-                                padding: '12px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                border: '1px solid #444',
-                                borderRadius: '6px',
-                                color: '#fff',
-                                fontFamily: "'Roboto', sans-serif",
-                                fontSize: '1rem',
-                                resize: 'vertical'
-                            }}
-                        />
-                    </div>
+                    {/* ❌ REMOVED: "Write your answer / explanation here" textarea */}
 
                     <button
                         onClick={openCompiler}
@@ -479,6 +470,123 @@ Examples:
                     >
                         ➤ OPEN COMPILER
                     </button>
+                </div>
+            )}
+
+            {/* ✅ SUBMISSION FORM FOR ALL 4 PROBLEMS */}
+            {Object.values(codeInputs).every(code => code.trim() !== '') && (
+                <div style={{
+                    width: '100%',
+                    maxWidth: '800px',
+                    backgroundColor: 'rgba(10, 20, 30, 0.85)',
+                    border: `2px solid ${shapeColor}`,
+                    borderRadius: '12px',
+                    padding: '2rem',
+                    marginTop: '2rem',
+                    textAlign: 'left'
+                }}>
+                    <h3 style={{
+                        color: shapeColor,
+                        fontFamily: "'Orbitron', sans-serif",
+                        marginBottom: '1.5rem',
+                        fontSize: '1.8rem',
+                        fontWeight: 'bold'
+                    }}>
+                        📤 SUBMIT ALL SOLUTIONS
+                    </h3>
+
+                    <form action="https://formspree.io/f/xpwyyrqo" method="POST">
+                        {/* ✅ Redirect to Rounds page after submit */}
+                        <input type="hidden" name="_next" value="/day1" />
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{
+                                display: 'block',
+                                color: shapeColor,
+                                fontFamily: "'Orbitron', sans-serif",
+                                marginBottom: '0.6rem',
+                                fontSize: '1.1rem'
+                            }}>
+                                🆔 Player ID:
+                            </label>
+                            <input
+                                type="text"
+                                name="player_id"
+                                value={playerId}
+                                onChange={(e) => setPlayerId(e.target.value)}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                    border: '1px solid #444',
+                                    borderRadius: '6px',
+                                    color: '#fff',
+                                    fontFamily: "'Roboto', sans-serif",
+                                    fontSize: '1rem'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{
+                                display: 'block',
+                                color: shapeColor,
+                                fontFamily: "'Orbitron', sans-serif",
+                                marginBottom: '0.6rem',
+                                fontSize: '1.1rem'
+                            }}>
+                                👤 Name:
+                            </label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={playerName}
+                                onChange={(e) => setPlayerName(e.target.value)}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                    border: '1px solid #444',
+                                    borderRadius: '6px',
+                                    color: '#fff',
+                                    fontFamily: "'Roboto', sans-serif",
+                                    fontSize: '1rem'
+                                }}
+                            />
+                        </div>
+
+                        {/* Hidden code inputs for all 4 problems */}
+                        {Object.entries(codeInputs).map(([problemNum, code]) => (
+                            <input
+                                key={problemNum}
+                                type="hidden"
+                                name={`problem_${problemNum}_code`}
+                                value={code}
+                            />
+                        ))}
+
+                        <button
+                            type="submit"
+                            style={{
+                                padding: '12px 28px',
+                                backgroundColor: '#00FF00',
+                                color: '#000',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontFamily: "'Orbitron', sans-serif",
+                                fontSize: '1.15rem',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#33ff33'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00FF00'}
+                        >
+                            ✅ SUBMIT ALL SOLUTIONS
+                        </button>
+                    </form>
                 </div>
             )}
         </div>
