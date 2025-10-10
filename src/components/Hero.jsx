@@ -1,11 +1,11 @@
 // src/components/Hero.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import EventCard from './EventCard';
 
 export default function Hero() {
   // ====== 🛠 MANUAL OVERRIDE FOR DEVELOPMENT ====
   // Set to `true` to force a day as "live" regardless of date
-  const DAY_ONE_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 1
+  const DAY_ONE_LIVE_OVERRIDE = true; // 🔧 Change to `true` to test Day 1
   const DAY_TWO_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 2
   // ================================================
 
@@ -19,18 +19,38 @@ export default function Hero() {
     seconds: '00'
   });
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
+  
+  // State for live status
+  const [isDayOneLive, setIsDayOneLive] = useState(false);
+  const [isDayTwoLive, setIsDayTwoLive] = useState(false);
 
   // Event dates (YYYY-MM-DD)
   const DAY_ONE_DATE = "2025-10-11";
   const DAY_TWO_DATE = "2025-10-18";
+  
+  // Day One activation time (9:00 AM on October 11, 2025)
+  const DAY_ONE_ACTIVATION_TIME = "2025-10-11T09:00:00";
 
-  // Determine if today is an event day
-  const today = new Date().toISOString().split('T')[0];
-  const isDayOneLive = DAY_ONE_LIVE_OVERRIDE || today === DAY_ONE_DATE;
-  const isDayTwoLive = DAY_TWO_LIVE_OVERRIDE || today === DAY_TWO_DATE;
-  const isAnyDayLive = isDayOneLive || isDayTwoLive;
+  // Function to check if days are live - wrapped in useCallback
+  const checkLiveStatus = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const activationTime = new Date(DAY_ONE_ACTIVATION_TIME);
+    
+    // Check if Day One is live (either by override, or after activation time on the event day)
+    const dayOneLive = DAY_ONE_LIVE_OVERRIDE || (
+      today === DAY_ONE_DATE && 
+      now >= activationTime
+    );
+    
+    // Check if Day Two is live
+    const dayTwoLive = DAY_TWO_LIVE_OVERRIDE || today === DAY_TWO_DATE;
+    
+    setIsDayOneLive(dayOneLive);
+    setIsDayTwoLive(dayTwoLive);
+  }, [DAY_ONE_LIVE_OVERRIDE, DAY_TWO_LIVE_OVERRIDE, DAY_ONE_DATE, DAY_TWO_DATE, DAY_ONE_ACTIVATION_TIME]);
 
-  // Countdown timer
+  // Combined timer for both countdown and live status
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
@@ -56,13 +76,20 @@ export default function Hero() {
       };
     };
 
+    // Initial check
+    checkLiveStatus();
     setTimeLeft(calculateTimeLeft());
+    
+    // Set up timer to update every second
     const timer = setInterval(() => {
+      checkLiveStatus(); // Check live status every second
       setTimeLeft(calculateTimeLeft());
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [REGISTRATION_DEADLINE]);
+  }, [REGISTRATION_DEADLINE, checkLiveStatus]); // Now checkLiveStatus is properly included
+
+  const isAnyDayLive = isDayOneLive || isDayTwoLive;
 
   // Waitlist state
   const [waitlistData, setWaitlistData] = useState({
@@ -223,10 +250,10 @@ export default function Hero() {
           }}
         >
           <p>
-            <strong>But it’s not just about the game</strong> – it’s about the journey, the learning, and the community you’ll be part of. We believe that the most thrilling experiences are the ones that bring together the brightest minds, and we want <em>you</em> to be a part of it.
+            <strong>But it's not just about the game</strong> – it's about the journey, the learning, and the community you'll be part of. We believe that the most thrilling experiences are the ones that bring together the brightest minds, and we want <em>you</em> to be a part of it.
           </p>
           <p>
-            So, what are you waiting for? Dive in, take your shot, and let’s make this an event to remember.
+            So, what are you waiting for? Dive in, take your shot, and let's make this an event to remember.
           </p>
         </div>
       </div>
@@ -295,7 +322,7 @@ export default function Hero() {
             className="neon-text"
             style={{
               fontSize: '2rem',
-              fontFamily: "'Orbitron', sans-serif",
+              fontFamily: "'Orbitron', sans-serif'",
               marginBottom: '0.8rem'
             }}
           >
@@ -434,6 +461,11 @@ export default function Hero() {
               link="#"
               isLive={isDayOneLive}
             />
+            {!isDayOneLive && new Date().toISOString().split('T')[0] === DAY_ONE_DATE && (
+              <p style={{ color: '#aaa', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                {new Date() < new Date(DAY_ONE_ACTIVATION_TIME) ? "Activates at 9:00 AM" : "Event has ended"}
+              </p>
+            )}
           </div>
 
           {/* Day Two: Only active if live */}

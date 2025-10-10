@@ -3,9 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ⏱️ STATIC CONFIG FOR TRIANGLE
-const AUTO_START_TIMER = false;
 const TOTAL_SECONDS = 17 * 60; // 1020 seconds
-const ADMIN_PASSWORD = "protocol456";
 
 export default function TrianglePage() {
     const navigate = useNavigate();
@@ -84,11 +82,8 @@ Examples:
     const [selectedProblem, setSelectedProblem] = useState(null);
     const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
     const [isTimerActive, setIsTimerActive] = useState(false);
-    const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
-    const [passwordInput, setPasswordInput] = useState('');
-    const [passwordError, setPasswordError] = useState('');
 
-    // ✅ NEW: Submission state
+    // Submission state
     const [playerId, setPlayerId] = useState('');
     const [playerName, setPlayerName] = useState('');
     const [codeInputs, setCodeInputs] = useState({
@@ -99,14 +94,12 @@ Examples:
     });
 
     const timerRef = useRef(null);
-    const hasAutoStarted = useRef(false);
 
+    // Auto-start timer when component mounts
     useEffect(() => {
-        if (AUTO_START_TIMER && !hasAutoStarted.current) {
-            setIsTimerActive(true);
-            setTimeLeft(TOTAL_SECONDS);
-            hasAutoStarted.current = true;
-        }
+        setIsTimerActive(true);
+        setTimeLeft(TOTAL_SECONDS);
+        
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
@@ -131,23 +124,7 @@ Examples:
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleStartTimerClick = () => setShowPasswordPrompt(true);
-
-    const handlePasswordSubmit = (e) => {
-        e.preventDefault();
-        if (passwordInput === ADMIN_PASSWORD) {
-            setIsTimerActive(true);
-            setTimeLeft(TOTAL_SECONDS);
-            setShowPasswordPrompt(false);
-            setPasswordInput('');
-            setPasswordError('');
-        } else {
-            setPasswordError('Incorrect password. Try again.');
-        }
-    };
-
     const openCompiler = () => {
-        // ✅ Fixed URL: removed trailing spaces
         window.open('https://www.programiz.com/c-programming/online-compiler/', '_blank');
     };
 
@@ -228,115 +205,12 @@ Examples:
                 background: 'rgba(0, 0, 0, 0.4)',
                 border: `2px solid ${isTimerActive ? (timeLeft <= 300 ? 'var(--neon-red)' : shapeColor) : '#555'}`,
                 borderRadius: '8px',
-                fontFamily: "'Orbitron', sans-serif",
+                fontFamily: "'Orbitron', sans-serif'",
                 fontSize: '1.4rem',
                 color: isTimerActive ? (timeLeft <= 300 ? 'var(--neon-red)' : shapeColor) : '#aaa'
             }}>
                 TIME LEFT: {formatTime(timeLeft)}
             </div>
-
-            {!isTimerActive && !AUTO_START_TIMER && (
-                <button
-                    onClick={handleStartTimerClick}
-                    style={{
-                        marginBottom: '1.2rem',
-                        padding: '8px 20px',
-                        background: 'transparent',
-                        border: `2px solid ${shapeColor}`,
-                        color: shapeColor,
-                        borderRadius: '6px',
-                        fontFamily: "'Orbitron', sans-serif",
-                        fontSize: '1rem',
-                        cursor: 'pointer'
-                    }}
-                >
-                    ▶ START TIMER (Admin)
-                </button>
-            )}
-
-            {showPasswordPrompt && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        backgroundColor: '#0a0f1a',
-                        padding: '2rem',
-                        borderRadius: '12px',
-                        border: `2px solid ${shapeColor}`,
-                        width: '90%',
-                        maxWidth: '400px'
-                    }}>
-                        <h3 style={{ color: shapeColor, fontFamily: "'Orbitron', sans-serif", marginBottom: '1rem' }}>
-                            🔐 Enter Admin Password
-                        </h3>
-                        <form onSubmit={handlePasswordSubmit}>
-                            <input
-                                type="password"
-                                value={passwordInput}
-                                onChange={(e) => {
-                                    setPasswordInput(e.target.value);
-                                    if (passwordError) setPasswordError('');
-                                }}
-                                placeholder="Password"
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    marginBottom: '1rem',
-                                    backgroundColor: 'rgba(10, 20, 30, 0.7)',
-                                    border: '1px solid #555',
-                                    color: 'white',
-                                    borderRadius: '4px'
-                                }}
-                            />
-                            {passwordError && (
-                                <p style={{ color: 'var(--neon-red)', marginBottom: '1rem' }}>
-                                    {passwordError}
-                                </p>
-                            )}
-                            <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center' }}>
-                                <button
-                                    type="submit"
-                                    style={{
-                                        padding: '8px 16px',
-                                        background: shapeColor,
-                                        color: '#000',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        fontFamily: "'Orbitron', sans-serif",
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Start Timer
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPasswordPrompt(false)}
-                                    style={{
-                                        padding: '8px 16px',
-                                        background: 'transparent',
-                                        color: '#aaa',
-                                        border: '1px solid #555',
-                                        borderRadius: '4px',
-                                        fontFamily: "'Orbitron', sans-serif",
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             <p style={{ fontSize: '1.3rem', color: '#ddd', marginBottom: '2rem', maxWidth: '650px', lineHeight: 1.6 }}>
                 You have chosen the Triangle. Stability guides your fate.
@@ -425,7 +299,7 @@ Examples:
                         <textarea
                             value={codeInputs[selectedProblem]}
                             onChange={(e) => handleCodeChange(selectedProblem, e.target.value)}
-                            placeholder="// Write your C code here..."
+                            placeholder="// Write your code here..."
                             style={{
                                 width: '100%',
                                 height: '120px',
@@ -440,8 +314,6 @@ Examples:
                             }}
                         />
                     </div>
-
-                    {/* ❌ REMOVED: "Write your answer / explanation here" textarea */}
 
                     <button
                         onClick={openCompiler}
@@ -465,7 +337,7 @@ Examples:
                 </div>
             )}
 
-            {/* ✅ SUBMISSION FORM FOR ALL 4 PROBLEMS */}
+            {/* SUBMISSION FORM FOR ALL 4 PROBLEMS */}
             {Object.values(codeInputs).every(code => code.trim() !== '') && (
                 <div style={{
                     width: '100%',
@@ -488,7 +360,7 @@ Examples:
                     </h3>
 
                     <form action="https://formspree.io/f/xvgwwrzl" method="POST">
-                        {/* ✅ Redirect to Rounds page after submit */}
+                        {/* Redirect to Rounds page after submit */}
                         <input type="hidden" name="_next" value="/day1" />
 
                         <div style={{ marginBottom: '1.5rem' }}>
@@ -524,7 +396,7 @@ Examples:
                             <label style={{
                                 display: 'block',
                                 color: shapeColor,
-                                fontFamily: "'Orbitron', sans-serif",
+                                fontFamily: "'Orbitron', sans-serif'",
                                 marginBottom: '0.6rem',
                                 fontSize: '1.1rem'
                             }}>
