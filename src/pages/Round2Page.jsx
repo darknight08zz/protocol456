@@ -54,19 +54,20 @@ export default function Round2Page() {
       }
 
       if (existingTeams.includes(cleanName)) {
-        alert('Team name already taken! Please choose a unique name.');
+        alert('Team name already taken!');
         return;
       }
 
       const membersArray = teamMembers
         .split(',')
         .map(m => m.trim())
-        .filter(m => m); // Allow empty, but filter blanks
+        .filter(m => m);
 
+      // ✅ Use Date.now() instead of serverTimestamp()
       await set(ref(db, `rooms/${ROOM_ID}/teams/${cleanName}`), {
         name: cleanName,
         members: membersArray,
-        joinedAt: serverTimestamp(),
+        joinedAt: Date.now(), // 🔥 This is a number!
       });
 
       setAllTeams([...existingTeams, cleanName]);
