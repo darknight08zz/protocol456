@@ -1,5 +1,5 @@
 // src/pages/Round2Page.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ref, onValue, set, get } from 'firebase/database';
 import { db } from '../firebase';
@@ -24,7 +24,10 @@ export default function Round2Page() {
   const [finalScores, setFinalScores] = useState([]);
   const [allTeams, setAllTeams] = useState([]);
 
-  // Fetch teams on mount
+  // ✅ NEW: Track which rounds have been processed
+  const processedRounds = useRef(new Set());
+
+  // Fetch teams ONCE when component mounts
   useEffect(() => {
     const fetchTeams = async () => {
       try {
@@ -38,7 +41,7 @@ export default function Round2Page() {
       }
     };
     fetchTeams();
-  }, []);
+  }, []); // Only run once
 
   const joinGame = useCallback(async () => {
     const cleanName = teamName.trim();
@@ -73,7 +76,8 @@ export default function Round2Page() {
         joinedAt: Date.now(),
       });
 
-      setAllTeams([...existingTeams, cleanName]);
+      // ✅ Update local allTeams AFTER successful join
+      setAllTeams(prev => [...prev, cleanName]);
       setHasJoined(true);
     } catch (error) {
       console.error('Join failed:', error);
@@ -101,10 +105,16 @@ export default function Round2Page() {
     setCurrentRound(prev => prev + 1);
     setShowResults(false);
     setRoundResult(null);
+    // ✅ Clear processed flag for next round
+    processedRounds.current.delete(currentRound + 1);
   }, [currentRound, navigate]);
 
   const processResults = useCallback(
     async (allChoices) => {
+      // ✅ Prevent re-processing the same round
+      if (processedRounds.current.has(currentRound)) return;
+      processedRounds.current.add(currentRound);
+
       const validChoices = {};
       Object.keys(allChoices)
         .filter(team => allTeams.includes(team))
@@ -112,7 +122,11 @@ export default function Round2Page() {
           validChoices[team] = allChoices[team];
         });
 
-      if (Object.keys(validChoices).length !== TOTAL_TEAMS) return;
+      if (Object.keys(validChoices).length !== TOTAL_TEAMS) {
+        // If not 10, remove from processed (in case teams drop out)
+        processedRounds.current.delete(currentRound);
+        return;
+      }
 
       const cleanName = teamName.trim();
       const selfishCount = Object.values(validChoices).filter(c => c.choice === 'selfish').length;
@@ -133,11 +147,9 @@ export default function Round2Page() {
         if (userChoiceHere === 'selfish') userPoints = -10;
       }
 
-      // Save round points
       const roundPointsRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}/points/${cleanName}`);
       await set(roundPointsRef, userPoints);
 
-      // Update total score
       const totalScoreRef = ref(db, `rooms/${ROOM_ID}/scores/${cleanName}`);
       const totalSnap = await get(totalScoreRef);
       const currentTotal = totalSnap.exists() ? totalSnap.val() : 0;
@@ -158,23 +170,25 @@ export default function Round2Page() {
     let interval = null;
     if (timerActive && timeLeft > 0) {
       interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
-    } else if (timeLeft === 0 && hasJoined) {
+    } else if (timeLeft === 0 && hasJoined && !showResults) {
       const cleanName = teamName.trim();
       if (!choices[cleanName]) {
         submitChoice('cooperate');
       }
     }
     return () => clearInterval(interval);
-  }, [timerActive, timeLeft, hasJoined, choices, teamName, submitChoice]);
+  }, [timerActive, timeLeft, hasJoined, showResults, choices, teamName, submitChoice]);
 
-  // Listen to round data
+  // 🔥 CRITICAL FIX: Round listener with proper guards
   useEffect(() => {
     if (!hasJoined) return;
 
-    setTimeLeft(ROUND_DURATION);
-    setTimerActive(true);
-    setShowResults(false);
-    setRoundResult(null);
+    // ✅ Only reset timer if we're NOT showing results and round hasn't been processed
+    if (!showResults && !processedRounds.current.has(currentRound)) {
+      setTimeLeft(ROUND_DURATION);
+      setTimerActive(true);
+      setRoundResult(null);
+    }
 
     const roundRef = ref(db, `rooms/${ROOM_ID}/rounds/${currentRound}`);
     const unsubscribe = onValue(roundRef, (snapshot) => {
@@ -183,18 +197,17 @@ export default function Round2Page() {
       setChoices(currentChoices);
 
       const validSubmissions = Object.keys(currentChoices).filter(t => allTeams.includes(t));
-      if (validSubmissions.length === TOTAL_TEAMS && !showResults) {
+      
+      // ✅ Only process if we haven't already and have 10 valid submissions
+      if (!processedRounds.current.has(currentRound) && validSubmissions.length === TOTAL_TEAMS) {
         processResults(currentChoices);
       }
     });
 
-    return () => {
-      unsubscribe();
-      setTimerActive(false);
-    };
-  }, [currentRound, showResults, hasJoined, allTeams, processResults, teamName]);
+    return () => unsubscribe();
+  }, [currentRound, hasJoined, allTeams, processResults, showResults]); // ✅ Removed setShowResults from deps to avoid reset loop
 
-  // Final scores after last round
+  // Final scores
   useEffect(() => {
     if (currentRound === ROUNDS && showResults) {
       const scoresRef = ref(db, `rooms/${ROOM_ID}/scores`);
@@ -213,7 +226,6 @@ export default function Round2Page() {
   const isMyChoiceSubmitted = choices[cleanName] !== undefined;
   const parsedMembers = teamMembers.split(',').map(m => m.trim()).filter(m => m);
 
-  // Registration screen
   if (!hasJoined) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#05080c', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#00F5D4', fontFamily: "'Orbitron', sans-serif", padding: '2rem' }}>
@@ -246,7 +258,6 @@ export default function Round2Page() {
     );
   }
 
-  // Game screen
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#05080c', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#00F5D4', fontFamily: "'Orbitron', sans-serif", padding: '2rem' }}>
       <h2>ROUND {currentRound} / {ROUNDS}</h2>
@@ -257,7 +268,7 @@ export default function Round2Page() {
         </p>
       )}
 
-      {timerActive && (
+      {timerActive && !showResults && (
         <p style={{ color: timeLeft <= 30 ? '#FF2A6D' : '#00F5D4', fontSize: '1.3rem', marginBottom: '1rem' }}>
           ⏱️ Time left: {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
         </p>
@@ -300,7 +311,7 @@ export default function Round2Page() {
         )
       )}
 
-      {(showResults || (currentRound > 5 && Object.keys(choices).filter(t => allTeams.includes(t)).length === TOTAL_TEAMS)) && (
+      {showResults && currentRound <= 5 && (
         <button
           onClick={handleNextRound}
           style={{ padding: '12px 30px', backgroundColor: '#00F5D4', color: '#000', border: 'none', borderRadius: '6px', fontSize: '1.2rem', marginTop: '1rem' }}
