@@ -5,7 +5,7 @@ import EventCard from './EventCard';
 export default function Hero() {
   // ====== 🛠 MANUAL OVERRIDE FOR DEVELOPMENT ======
   // Set to `true` to force a day as "live" regardless of date
-  const DAY_ONE_LIVE_OVERRIDE = true; // 🔧 Change to `true` to test Day 1
+  const DAY_ONE_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 1
   const DAY_TWO_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 2
   // ================================================
 
