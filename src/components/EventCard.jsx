@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export default function EventCard({ day, title, link, isLive = false }) {
+export default function EventCard({ day, title, link, isLive = false, isEnded = false }) {
   const cardContent = (
     <div
       style={{
@@ -26,7 +26,7 @@ export default function EventCard({ day, title, link, isLive = false }) {
           position: 'absolute',
           top: '12px',
           right: '-30px',
-          backgroundColor: isLive ? 'var(--neon-teal)' : 'var(--neon-red)',
+          backgroundColor: isLive ? 'var(--neon-teal)' : (isEnded ? '#666' : 'var(--neon-red)'),
           color: 'black',
           padding: '4px 30px',
           transform: 'rotate(45deg)',
@@ -36,7 +36,7 @@ export default function EventCard({ day, title, link, isLive = false }) {
           letterSpacing: '1px'
         }}
       >
-        {isLive ? 'LIVE NOW' : 'COMING SOON'}
+        {isLive ? 'LIVE NOW' : (isEnded ? 'EVENT ENDED' : 'COMING SOON')}
       </div>
 
       <h3

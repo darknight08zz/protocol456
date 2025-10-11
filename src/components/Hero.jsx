@@ -5,7 +5,7 @@ import EventCard from './EventCard';
 export default function Hero() {
   // ====== 🛠 MANUAL OVERRIDE FOR DEVELOPMENT ====
   // Set to `true` to force a day as "live" regardless of date
-  const DAY_ONE_LIVE_OVERRIDE = true; // 🔧 Change to `true` to test Day 1
+  const DAY_ONE_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 1
   const DAY_TWO_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 2
   // ================================================
 
@@ -25,7 +25,7 @@ export default function Hero() {
   const [isDayTwoLive, setIsDayTwoLive] = useState(false);
 
   // Event dates (YYYY-MM-DD)
-  const DAY_ONE_DATE = "2025-10-11";
+  const DAY_ONE_DATE = "2025-10-10";
   const DAY_TWO_DATE = "2025-10-18";
   
   // Day One activation time (9:00 AM on October 11, 2025)
@@ -147,6 +147,34 @@ export default function Hero() {
     } else if (password !== null) {
       alert("❌ Incorrect password. Access denied.");
     }
+  };
+
+  // Helper function to check if Day One has ended
+  const isDayOneEnded = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const activationTime = new Date(DAY_ONE_ACTIVATION_TIME);
+    
+    if (today > DAY_ONE_DATE) {
+      return true;
+    } else if (today === DAY_ONE_DATE && now >= activationTime) {
+      // If it's the event day but not live, it means the event has ended
+      return !isDayOneLive;
+    }
+    return false;
+  };
+
+  // Helper function to check if Day Two has ended
+  const isDayTwoEnded = () => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (today > DAY_TWO_DATE) {
+      return true;
+    } else if (today === DAY_TWO_DATE) {
+      // If it's the event day but not live, it means the event has ended
+      return !isDayTwoLive;
+    }
+    return false;
   };
 
   return (
@@ -439,61 +467,66 @@ export default function Hero() {
             color: '#FF2A6D',
           }}
         >
-          {/* 🔐 Day One: Only active if live */}
-          <div
-            onClick={isDayOneLive ? handleDayOneClick : undefined}
-            style={{
-              width: '320px',
-              cursor: isDayOneLive ? 'pointer' : 'not-allowed',
-              opacity: isDayOneLive ? 1 : 0.5,
-              pointerEvents: isDayOneLive ? 'auto' : 'none'
-            }}
-          >
-            <EventCard
-              day="October 11, 2025"
-              title={
-                <>
-                  <span>DAY ONE:</span>
-                  <br />
-                  THE INITIAL PROTOCOL
-                </>
-              }
-              link="#"
-              isLive={isDayOneLive}
-            />
-            {!isDayOneLive && new Date().toISOString().split('T')[0] === DAY_ONE_DATE && (
+          {/* 🔐 Day One Card */}
+          <div style={{ width: '320px' }}>
+            <div
+              onClick={isDayOneLive ? handleDayOneClick : undefined}
+              style={{
+                cursor: isDayOneLive ? 'pointer' : 'not-allowed',
+                opacity: isDayOneLive ? 1 : 0.5,
+                pointerEvents: isDayOneLive ? 'auto' : 'none'
+              }}
+            >
+              <EventCard
+                day="October 11, 2025"
+                title={
+                  <>
+                    <span>DAY ONE:</span>
+                    <br />
+                    THE INITIAL PROTOCOL
+                  </>
+                }
+                link="#"
+                isLive={isDayOneLive}
+                isEnded={isDayOneEnded()}
+              />
+            </div>
+            {!isDayOneLive && !isDayOneEnded() && (
               <p style={{ color: '#aaa', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                {new Date() < new Date(DAY_ONE_ACTIVATION_TIME) ? "Activates at 9:00 AM" : "Event has ended"}
+                {new Date() < new Date(DAY_ONE_ACTIVATION_TIME) ? "Activates at 9:00 AM" : "Coming soon"}
               </p>
             )}
           </div>
 
-          {/* Day Two: Only active if live */}
-          <a
-            href={isDayTwoLive ? "/day2" : "#"}
-            style={{
-              width: '320px',
-              textDecoration: 'none',
-              cursor: isDayTwoLive ? 'pointer' : 'not-allowed',
-              opacity: isDayTwoLive ? 1 : 0.5,
-              pointerEvents: isDayTwoLive ? 'auto' : 'none',
-              display: 'block',
-              color: '#FF2A6D',
-            }}
-          >
-            <EventCard
-              day="October 18, 2025"
-              title={
-                <>
-                  <span>DAY TWO:</span>
-                  <br />
-                  THE FINAL PROTOCOL
-                </>
-              }
-              link={isDayTwoLive ? "/day2" : "#"}
-              isLive={isDayTwoLive}
-            />
-          </a>
+          {/* Day Two Card */}
+          <div style={{ width: '320px' }}>
+            <a
+              href={isDayTwoLive ? "/day2" : "#"}
+              style={{
+                textDecoration: 'none',
+                cursor: isDayTwoLive ? 'pointer' : 'not-allowed',
+                opacity: isDayTwoLive ? 1 : 0.5,
+                pointerEvents: isDayTwoLive ? 'auto' : 'none',
+                display: 'block',
+                color: '#FF2A6D',
+              }}
+            >
+              <EventCard
+                day="October 18, 2025"
+                title={
+                  <>
+                    <span>DAY TWO:</span>
+                    <br />
+                    THE FINAL PROTOCOL
+                  </>
+                }
+                link={isDayTwoLive ? "/day2" : "#"}
+                isLive={isDayTwoLive}
+                isEnded={isDayTwoEnded()}
+              />
+            </a>
+            
+          </div>
         </div>
       </div>
     </section>
