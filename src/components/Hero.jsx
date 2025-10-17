@@ -5,7 +5,7 @@ import EventCard from './EventCard';
 export default function Hero() {
   // ====== 🛠 MANUAL OVERRIDE FOR DEVELOPMENT ====
   const DAY_ONE_LIVE_OVERRIDE = false;
-  const DAY_TWO_LIVE_OVERRIDE = true;
+  const DAY_TWO_LIVE_OVERRIDE = false;
   // ================================================
 
   const REGISTRATION_DEADLINE = "2025-10-10T23:59:59";
