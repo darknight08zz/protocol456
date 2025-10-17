@@ -4,9 +4,8 @@ import EventCard from './EventCard';
 
 export default function Hero() {
   // ====== 🛠 MANUAL OVERRIDE FOR DEVELOPMENT ====
-  // Set to `true` to force a day as "live" regardless of date
-  const DAY_ONE_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 1
-  const DAY_TWO_LIVE_OVERRIDE = false; // 🔧 Change to `true` to test Day 2
+  const DAY_ONE_LIVE_OVERRIDE = false;
+  const DAY_TWO_LIVE_OVERRIDE = true;
   // ================================================
 
   const REGISTRATION_DEADLINE = "2025-10-10T23:59:59";
@@ -20,37 +19,29 @@ export default function Hero() {
   });
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
   
-  // State for live status
   const [isDayOneLive, setIsDayOneLive] = useState(false);
   const [isDayTwoLive, setIsDayTwoLive] = useState(false);
 
-  // Event dates (YYYY-MM-DD)
   const DAY_ONE_DATE = "2025-10-10";
   const DAY_TWO_DATE = "2025-10-18";
-  
-  // Day One activation time (9:00 AM on October 11, 2025)
   const DAY_ONE_ACTIVATION_TIME = "2025-10-11T09:00:00";
 
-  // Function to check if days are live - wrapped in useCallback
   const checkLiveStatus = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
     const activationTime = new Date(DAY_ONE_ACTIVATION_TIME);
     
-    // Check if Day One is live (either by override, or after activation time on the event day)
     const dayOneLive = DAY_ONE_LIVE_OVERRIDE || (
       today === DAY_ONE_DATE && 
       now >= activationTime
     );
     
-    // Check if Day Two is live
     const dayTwoLive = DAY_TWO_LIVE_OVERRIDE || today === DAY_TWO_DATE;
     
     setIsDayOneLive(dayOneLive);
     setIsDayTwoLive(dayTwoLive);
   }, [DAY_ONE_LIVE_OVERRIDE, DAY_TWO_LIVE_OVERRIDE, DAY_ONE_DATE, DAY_TWO_DATE, DAY_ONE_ACTIVATION_TIME]);
 
-  // Combined timer for both countdown and live status
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
@@ -76,67 +67,17 @@ export default function Hero() {
       };
     };
 
-    // Initial check
     checkLiveStatus();
     setTimeLeft(calculateTimeLeft());
     
-    // Set up timer to update every second
     const timer = setInterval(() => {
-      checkLiveStatus(); // Check live status every second
+      checkLiveStatus();
       setTimeLeft(calculateTimeLeft());
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [REGISTRATION_DEADLINE, checkLiveStatus]); // Now checkLiveStatus is properly included
+  }, [REGISTRATION_DEADLINE, checkLiveStatus]);
 
-  const isAnyDayLive = isDayOneLive || isDayTwoLive;
-
-  // Waitlist state
-  const [waitlistData, setWaitlistData] = useState({
-    name: '',
-    mobile: '',
-    email: '',
-    university: ''
-  });
-  const [waitlistStatus, setWaitlistStatus] = useState('idle');
-
-  const handleWaitlistSubmit = async (e) => {
-    e.preventDefault();
-    setWaitlistStatus('submitting');
-
-    const formData = new FormData();
-    formData.append('name', waitlistData.name);
-    formData.append('mobile', waitlistData.mobile);
-    formData.append('email', waitlistData.email);
-    formData.append('university', waitlistData.university);
-
-    try {
-      const response = await fetch('https://formspree.io/f/xjkaokql', {
-        method: 'POST',
-        body: formData,
-        headers: { Accept: 'application/json' }
-      });
-
-      if (response.ok) {
-        setWaitlistStatus('success');
-        setWaitlistData({ name: '', mobile: '', email: '', university: '' });
-        setTimeout(() => setWaitlistStatus('idle'), 4000);
-      } else {
-        setWaitlistStatus('error');
-      }
-    } catch {
-      setWaitlistStatus('error');
-    }
-  };
-
-  const inputStyle = {
-    padding: '10px',
-    borderRadius: '6px',
-    border: '1px solid #444',
-    backgroundColor: 'rgba(20, 30, 40, 0.7)',
-    color: 'white',
-    fontSize: '1rem'
-  };
 
   // 🔐 Password-protected navigation for Day One
   const handleDayOneClick = (e) => {
@@ -149,7 +90,6 @@ export default function Hero() {
     }
   };
 
-  // Helper function to check if Day One has ended
   const isDayOneEnded = () => {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
@@ -158,20 +98,17 @@ export default function Hero() {
     if (today > DAY_ONE_DATE) {
       return true;
     } else if (today === DAY_ONE_DATE && now >= activationTime) {
-      // If it's the event day but not live, it means the event has ended
       return !isDayOneLive;
     }
     return false;
   };
 
-  // Helper function to check if Day Two has ended
   const isDayTwoEnded = () => {
     const today = new Date().toISOString().split('T')[0];
     
     if (today > DAY_TWO_DATE) {
       return true;
     } else if (today === DAY_TWO_DATE) {
-      // If it's the event day but not live, it means the event has ended
       return !isDayTwoLive;
     }
     return false;
@@ -192,27 +129,7 @@ export default function Hero() {
         position: 'relative'
       }}
     >
-      {isAnyDayLive && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '90px',
-            right: '2rem',
-            backgroundColor: 'var(--neon-red)',
-            color: 'black',
-            padding: '6px 18px',
-            borderRadius: '20px',
-            fontWeight: 'bold',
-            fontFamily: "'Orbitron', sans-serif",
-            fontSize: '1.1rem',
-            letterSpacing: '1px',
-            boxShadow: '0 0 10px rgba(255, 42, 109, 0.7)',
-            zIndex: 10
-          }}
-        >
-          LIVE NOW
-        </div>
-      )}
+      
 
       <p
         style={{
@@ -346,19 +263,56 @@ export default function Hero() {
         </div>
       ) : (
         <div style={{ width: '100%', maxWidth: '800px' }}>
+          {/* SEASON 2 COMING SOON SECTION */}
           <div
-            className="neon-text"
             style={{
-              fontSize: '2rem',
-              fontFamily: "'Orbitron', sans-serif'",
-              marginBottom: '0.8rem'
+              padding: '2.5rem 1.5rem',
+              borderRadius: '12px',
+              border: '1px solid var(--neon-red)',
+              background: 'linear-gradient(145deg, rgba(10, 5, 15, 0.7), rgba(20, 10, 30, 0.9))',
+              backdropFilter: 'blur(4px)',
+              boxShadow: '0 0 20px rgba(255, 42, 109, 0.3)',
+              maxWidth: '600px',
+              margin: '0 auto'
             }}
           >
-            REGISTRATION CLOSED
+            <div
+              className="neon-text"
+              style={{
+                fontSize: '2.8rem',
+                fontFamily: "'Orbitron', sans-serif",
+                marginBottom: '1rem',
+                color: '#FF2A6D',
+                textShadow: '0 0 8px rgba(255, 42, 109, 0.7)',
+                letterSpacing: '2px'
+              }}
+            >
+              SEASON 2
+            </div>
+            <div
+              style={{
+                fontSize: '1.8rem',
+                fontFamily: "'Orbitron', sans-serif",
+                color: '#FF2A6D',
+                textShadow: '0 0 6px rgba(255, 42, 109, 0.5)',
+                letterSpacing: '3px'
+              }}
+            >
+              COMING SOON
+            </div>
+            <div
+              style={{
+                marginTop: '1.5rem',
+                color: '#aaa',
+                fontSize: '1.1rem',
+                fontStyle: 'italic',
+                maxWidth: '500px',
+                margin: '0 auto'
+              }}
+            >
+              The Protocol continues. Prepare for new challenges, deeper mysteries, and higher stakes.
+            </div>
           </div>
-          <p style={{ color: '#777', fontSize: '1.1rem' }}>
-            Thank you for your interest! The event schedule is below.
-          </p>
         </div>
       )}
 
@@ -377,70 +331,7 @@ export default function Hero() {
         >
           REGISTER NOW
         </a>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', maxWidth: '450px', width: '100%' }}>
-          <p style={{ color: 'var(--neon-red)', fontSize: '1.1rem', fontStyle: 'italic' }}>
-            Registrations are now closed. See you at the event!
-          </p>
-          <div style={{ marginTop: '1rem', width: '100%' }}>
-            <p style={{ color: '#ccc', marginBottom: '0.8rem', fontSize: '1rem' }}>
-              Missed the deadline? Join our waitlist for future events:
-            </p>
-            <form onSubmit={handleWaitlistSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', width: '100%' }}>
-              <input
-                type="text"
-                value={waitlistData.name}
-                onChange={(e) => setWaitlistData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Full Name"
-                required
-                style={inputStyle}
-              />
-              <input
-                type="tel"
-                value={waitlistData.mobile}
-                onChange={(e) => setWaitlistData(prev => ({ ...prev, mobile: e.target.value }))}
-                placeholder="Mobile Number"
-                required
-                style={inputStyle}
-              />
-              <input
-                type="email"
-                value={waitlistData.email}
-                onChange={(e) => setWaitlistData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="Email"
-                required
-                style={inputStyle}
-              />
-              <input
-                type="text"
-                value={waitlistData.university}
-                onChange={(e) => setWaitlistData(prev => ({ ...prev, university: e.target.value }))}
-                placeholder="University"
-                required
-                style={inputStyle}
-              />
-              <button
-                type="submit"
-                disabled={waitlistStatus === 'submitting'}
-                className="glow-button"
-                style={{
-                  padding: '10px',
-                  fontSize: '1rem',
-                  width: '100%',
-                  opacity: waitlistStatus === 'submitting' ? 0.7 : 1
-                }}
-              >
-                {waitlistStatus === 'submitting' ? 'JOINING...' : 'JOIN WAITLIST'}
-              </button>
-            </form>
-            {waitlistStatus === 'success' && (
-              <p style={{ color: 'var(--neon-teal)', marginTop: '0.8rem', fontWeight: 'bold', textAlign: 'center' }}>
-                ✅ Your response has been recorded. Stay tuned — we will contact you soon!
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      ) : null}
 
       <div style={{ width: '100%', maxWidth: '950px', paddingTop: '3rem', borderTop: '1px solid #222' }}>
         <h2
@@ -467,7 +358,6 @@ export default function Hero() {
             color: '#FF2A6D',
           }}
         >
-          {/* 🔐 Day One Card */}
           <div style={{ width: '320px' }}>
             <div
               onClick={isDayOneLive ? handleDayOneClick : undefined}
@@ -498,7 +388,6 @@ export default function Hero() {
             )}
           </div>
 
-          {/* Day Two Card */}
           <div style={{ width: '320px' }}>
             <a
               href={isDayTwoLive ? "/day2" : "#"}
@@ -525,7 +414,6 @@ export default function Hero() {
                 isEnded={isDayTwoEnded()}
               />
             </a>
-            
           </div>
         </div>
       </div>

@@ -11,7 +11,9 @@ import TrianglePage from './pages/TrianglePage';
 import SquarePage from './pages/SquarePage';
 import StarPage from './pages/StarPage';
 import Round2Page from './pages/Round2Page';
-
+import Day2Page from './pages/Day2Page';
+import Gallery from './components/gallery';
+import About from './components/About';
 function App() {
   return (
     <Router>
@@ -25,7 +27,9 @@ function App() {
           <Route path="/square" element={<SquarePage />} />
           <Route path="/star" element={<StarPage />} />
           <Route path="/round2" element={<Round2Page />} />
-          {/* Add /day2 later */}
+          <Route path="/day2" element={<Day2Page />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/about" element={<About />} />
         </Routes>
         <Footer />
       </div>
