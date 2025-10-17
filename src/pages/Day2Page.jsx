@@ -8,14 +8,18 @@ export default function Day2Page() {
 
   // ===== ROUND 4 STATE =====
   const [numTeamsR4, setNumTeamsR4] = useState('');
-  const [password, setPassword] = useState(''); // 🔐 New: admin password
+  const [password, setPassword] = useState('');
   const [teamIdsR4, setTeamIdsR4] = useState([]);
+  const [customTeamInputs, setCustomTeamInputs] = useState([]);
   const [rankingsR4, setRankingsR4] = useState([]);
-  const [stepR4, setStepR4] = useState('input'); // 'input' | 'auth' | 'ranking' | 'eliminate' | 'final'
+  const [stepR4, setStepR4] = useState('input'); // 'input' | 'auth' | 'inputIds' | 'ranking' | 'eliminate' | 'final'
   const [selectedTeamR4, setSelectedTeamR4] = useState(null);
   const [errorR4, setErrorR4] = useState('');
 
-  // Start Round 4: first validate team count, then go to auth step
+  // ===== ZOOM IMAGE STATE =====
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  // Start Round 4
   const handleStartR4 = () => {
     const n = parseInt(numTeamsR4, 10);
     if (isNaN(n) || n < 3 || n > 8) {
@@ -23,7 +27,7 @@ export default function Day2Page() {
       return;
     }
     setErrorR4('');
-    setStepR4('auth'); // Go to password step
+    setStepR4('auth');
   };
 
   // Handle password submission
@@ -32,18 +36,31 @@ export default function Day2Page() {
       setErrorR4('Incorrect admin password.');
       return;
     }
-
-    // Password correct → initialize teams and go to ranking
     const n = parseInt(numTeamsR4, 10);
-    const ids = Array.from({ length: n }, (_, i) => i + 1);
-    setTeamIdsR4(ids);
+    setCustomTeamInputs(Array(n).fill(''));
+    setStepR4('inputIds');
+    setErrorR4('');
+  };
+
+  // Handle custom team ID input
+  const handleTeamIdsSubmit = () => {
+    const trimmed = customTeamInputs.map(id => id.trim());
+    if (trimmed.some(id => id === '')) {
+      setErrorR4('All player IDs must be filled.');
+      return;
+    }
+    if (new Set(trimmed).size !== trimmed.length) {
+      setErrorR4('Player IDs must be unique.');
+      return;
+    }
+    setTeamIdsR4(trimmed);
     setRankingsR4([]);
     setSelectedTeamR4(null);
     setStepR4('ranking');
     setErrorR4('');
   };
 
-  // Handle ranking input in Round 4
+  // Handle ranking submission
   const handleRankSubmitR4 = () => {
     if (rankingsR4.length !== teamIdsR4.length) {
       setErrorR4('Please rank all players.');
@@ -57,7 +74,7 @@ export default function Day2Page() {
     for (let i = 0; i < rankingsR4.length; i++) {
       const playerId = rankingsR4[i];
       const count = weights[i] || 1;
-      weightedPool = weightedPool.concat(Array(count).fill(playerId));
+      weightedPool.push(...Array(count).fill(playerId));
     }
 
     const randomIndex = Math.floor(Math.random() * weightedPool.length);
@@ -68,7 +85,7 @@ export default function Day2Page() {
     setErrorR4('');
   };
 
-  // Handle player removal in Round 4
+  // Handle player elimination
   const handleRemoveTeamR4 = (playerIdToRemove) => {
     const updated = teamIdsR4.filter(id => id !== playerIdToRemove);
     if (updated.length <= 2) {
@@ -87,6 +104,7 @@ export default function Day2Page() {
     setNumTeamsR4('');
     setPassword('');
     setTeamIdsR4([]);
+    setCustomTeamInputs([]);
     setRankingsR4([]);
     setStepR4('input');
     setSelectedTeamR4(null);
@@ -316,6 +334,29 @@ export default function Day2Page() {
             ROUND FOUR: CIRCUIT OF DECEPTION
           </h1>
 
+          {/* REFERENCE IMAGE */}
+          <div style={{ marginBottom: '2rem' }}>
+            <p style={{ color: '#aaa', fontSize: '1.1rem', marginBottom: '0.8rem' }}>
+              Reference Diagram for Circuit Logic:
+            </p>
+            <img
+              src="/reference.jpg"
+              alt="Circuit Reference"
+              onClick={() => setIsZoomed(true)}
+              style={{
+                width: '100%',
+                maxWidth: '600px',
+                height: 'auto',
+                borderRadius: '8px',
+                border: '1px solid #333',
+                cursor: 'zoom-in',
+                transition: 'opacity 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+            />
+          </div>
+
           {/* SET BUTTONS */}
           <div style={{
             display: 'grid',
@@ -325,8 +366,10 @@ export default function Day2Page() {
           }}>
             {Array.from({ length: 6 }, (_, i) => {
               const setId = i + 1;
+              // ✅ Define paths here — update if your naming differs
               const circUrl = `/circuits/round4/set${setId}.circ`;
-              const pdfUrl = `/circuits/round4/set${setId}.pdf`;
+              const pdfUrl = `/circuits/round4/set${setId}_guide.pdf`;
+
               return (
                 <div
                   key={setId}
@@ -352,7 +395,7 @@ export default function Day2Page() {
 
                   <a
                     href={circUrl}
-                    download={`set${setId}_circuit.circ`}
+                    download={`set${setId}.circ`}
                     className="glow-button"
                     style={{
                       width: '100%',
@@ -363,7 +406,7 @@ export default function Day2Page() {
                       display: 'block'
                     }}
                   >
-                    📥 Download .circ
+                    📥 Download your Circuit
                   </a>
 
                   <a
@@ -381,16 +424,12 @@ export default function Day2Page() {
                       borderColor: 'var(--neon-purple)'
                     }}
                   >
-                    📄 Download .pdf
+                    📄 Download Truth Table
                   </a>
                 </div>
               );
             })}
           </div>
-
-          <p style={{ color: '#aaa', fontSize: '1.05rem', marginTop: '1rem', fontStyle: 'italic', marginBottom: '2rem' }}>
-            Study the cipher. Predict the outcome. Survive the protocol.
-          </p>
 
           {/* STEP: INPUT NUMBER OF PLAYERS */}
           {stepR4 === 'input' && (
@@ -484,6 +523,72 @@ export default function Day2Page() {
             </div>
           )}
 
+          {/* STEP: INPUT CUSTOM TEAM IDs */}
+          {stepR4 === 'inputIds' && (
+            <div>
+              <p style={{ color: '#ddd', fontSize: '1.2rem', marginBottom: '1rem' }}>
+                Enter unique IDs for each of the {customTeamInputs.length} players.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
+                {customTeamInputs.map((id, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                    <span style={{ color: '#00FFA3', fontWeight: 'bold', minWidth: '100px' }}>
+                      Player {idx + 1}:
+                    </span>
+                    <input
+                      type="text"
+                      value={id}
+                      onChange={(e) => {
+                        const newInputs = [...customTeamInputs];
+                        newInputs[idx] = e.target.value;
+                        setCustomTeamInputs(newInputs);
+                      }}
+                      placeholder={`ID for player ${idx + 1}`}
+                      style={{
+                        padding: '10px',
+                        fontSize: '1rem',
+                        backgroundColor: 'rgba(10, 15, 20, 0.7)',
+                        border: '1px solid #444',
+                        borderRadius: '6px',
+                        color: 'white',
+                        minWidth: '180px',
+                        textAlign: 'center'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              {errorR4 && <p style={{ color: 'var(--neon-red)', marginTop: '0.5rem' }}>{errorR4}</p>}
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                <button
+                  onClick={handleTeamIdsSubmit}
+                  className="glow-button"
+                  style={{ padding: '12px 24px', fontSize: '1.1rem' }}
+                >
+                  CONFIRM IDs
+                </button>
+                <button
+                  onClick={() => {
+                    setStepR4('auth');
+                    setCustomTeamInputs([]);
+                    setErrorR4('');
+                  }}
+                  style={{
+                    padding: '12px 24px',
+                    fontSize: '1.1rem',
+                    background: 'transparent',
+                    border: '1px solid #555',
+                    color: '#aaa',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ← Back
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* STEP: RANKING */}
           {stepR4 === 'ranking' && (
             <div>
@@ -503,8 +608,8 @@ export default function Day2Page() {
                     <select
                       value={rankingsR4[idx] || ''}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        if (isNaN(val)) return;
+                        const val = e.target.value;
+                        if (val === '') return;
                         if (rankingsR4.includes(val) && rankingsR4[idx] !== val) return;
                         const newRankings = [...rankingsR4];
                         newRankings[idx] = val;
@@ -523,7 +628,7 @@ export default function Day2Page() {
                       {teamIdsR4
                         .filter(id => !rankingsR4.includes(id) || rankingsR4[idx] === id)
                         .map(id => (
-                          <option key={id} value={id}>Player {id}</option>
+                          <option key={id} value={id}>{id}</option>
                         ))}
                     </select>
                   </div>
@@ -546,7 +651,7 @@ export default function Day2Page() {
           {stepR4 === 'eliminate' && selectedTeamR4 !== null && (
             <div>
               <p style={{ color: '#FFD166', fontSize: '1.3rem', marginBottom: '1rem' }}>
-                🎯 Weighted random selection: <strong>Player {selectedTeamR4}</strong>
+                🎯 Round Winner: <strong>{selectedTeamR4}</strong>
               </p>
               <p style={{ color: '#ddd', marginBottom: '1.5rem' }}>
                 Choose a player to eliminate (you may eliminate any player).
@@ -564,7 +669,7 @@ export default function Day2Page() {
                       border: '1px solid var(--neon-teal)'
                     }}
                   >
-                    Eliminate Player {id}
+                    Eliminate {id}
                   </button>
                 ))}
               </div>
@@ -578,7 +683,8 @@ export default function Day2Page() {
                 ✅ FINAL PLAYERS: {teamIdsR4.join(' and ')}
               </p>
               <p style={{ color: '#ddd', marginBottom: '1.5rem' }}>
-                The cipher is broken. Only two remain.
+                The two finalists have made it through the Circuit of Deception! Congratulations to both players for their strategic prowess.
+                Now the final moment awaits—who will claim <strong style={{ color: 'var(--neon-teal)', fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1rem' }}>ultimate victory</strong>?
               </p>
               <button
                 onClick={resetRound4}
@@ -589,6 +695,39 @@ export default function Day2Page() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ZOOM MODAL FOR REFERENCE IMAGE */}
+      {isZoomed && (
+        <div
+          onClick={() => setIsZoomed(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            cursor: 'zoom-out'
+          }}
+        >
+          <img
+            src="/reference.jpg"
+            alt="Circuit Reference (Zoomed)"
+            style={{
+              maxWidth: '95vw',
+              maxHeight: '95vh',
+              objectFit: 'contain',
+              border: '2px solid var(--neon-teal)',
+              borderRadius: '4px'
+            }}
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking image
+          />
         </div>
       )}
     </section>
