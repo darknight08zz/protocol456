@@ -366,9 +366,8 @@ export default function Day2Page() {
           }}>
             {Array.from({ length: 6 }, (_, i) => {
               const setId = i + 1;
-              // ✅ Define paths here — update if your naming differs
-              const circUrl = `/circuits/round4/set${setId}.circ`;
-              const pdfUrl = `/circuits/round4/set${setId}_guide.pdf`;
+              const circUrl = `/circuits/Fault-${setId}.circ`;
+              const pdfUrl = `/circuits/Truth-Table-${setId}.pdf`;
 
               return (
                 <div
@@ -395,7 +394,7 @@ export default function Day2Page() {
 
                   <a
                     href={circUrl}
-                    download={`set${setId}.circ`}
+                    download={`Fault-${setId}.circ`}
                     className="glow-button"
                     style={{
                       width: '100%',
@@ -411,7 +410,7 @@ export default function Day2Page() {
 
                   <a
                     href={pdfUrl}
-                    download={`set${setId}_guide.pdf`}
+                    download={`Truth-Table-${setId}.pdf`}
                     className="glow-button"
                     style={{
                       width: '100%',
@@ -424,7 +423,7 @@ export default function Day2Page() {
                       borderColor: 'var(--neon-purple)'
                     }}
                   >
-                    📄 Download Truth Table
+                    📄 Truth Table
                   </a>
                 </div>
               );
@@ -684,7 +683,7 @@ export default function Day2Page() {
               </p>
               <p style={{ color: '#ddd', marginBottom: '1.5rem' }}>
                 The two finalists have made it through the Circuit of Deception! Congratulations to both players for their strategic prowess.
-                Now the final moment awaits—who will claim <strong style={{ color: 'var(--neon-teal)', fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1rem' }}>ultimate victory</strong>?
+                Now the final moment awaits—who will claim <strong>ultimate victory</strong>?
               </p>
               <button
                 onClick={resetRound4}
