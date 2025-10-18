@@ -3,6 +3,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export default function EventCard({ day, title, link, isLive = false, isEnded = false }) {
+  let badgeText = 'COMING SOON';
+  let badgeColor = 'var(--neon-red)';
+
+  if (isLive) {
+    badgeText = 'LIVE NOW';
+    badgeColor = 'var(--neon-teal)';
+  } else if (isEnded) {
+    badgeText = 'EVENT ENDED';
+    badgeColor = '#555'; // dark gray for ended events
+  }
+
   const cardContent = (
     <div
       style={{
@@ -18,25 +29,26 @@ export default function EventCard({ day, title, link, isLive = false, isEnded = 
         transition: 'opacity 0.3s',
         minWidth: '320px',
         minHeight: '220px',
-        pointerEvents: isLive ? 'auto' : 'none'
+        pointerEvents: isLive ? 'auto' : 'none',
       }}
     >
-      <div  
+      <div
         style={{
           position: 'absolute',
           top: '12px',
           right: '-30px',
-          backgroundColor: isLive ? 'var(--neon-teal)' : (isEnded ? '#666' : 'var(--neon-red)'),
-          color: 'black',
+          backgroundColor: badgeColor,
+          color: 'white',
           padding: '4px 30px',
           transform: 'rotate(45deg)',
           fontSize: '0.85rem',
           fontWeight: 'bold',
           fontFamily: "'Orbitron', sans-serif",
-          letterSpacing: '1px'
+          letterSpacing: '1px',
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
         }}
       >
-        {isLive ? 'LIVE NOW' : (isEnded ? 'EVENT ENDED' : 'COMING SOON')}
+        {badgeText}
       </div>
 
       <h3
@@ -45,7 +57,7 @@ export default function EventCard({ day, title, link, isLive = false, isEnded = 
           fontSize: '1.6rem',
           marginBottom: '1rem',
           fontFamily: "'Orbitron', sans-serif",
-          opacity: isLive ? 1 : 0.7
+          opacity: isLive ? 1 : 0.7,
         }}
       >
         {title}

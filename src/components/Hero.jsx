@@ -5,7 +5,7 @@ import EventCard from './EventCard';
 export default function Hero() {
   // ====== 🛠 MANUAL OVERRIDE FOR DEVELOPMENT ====
   const DAY_ONE_LIVE_OVERRIDE = false;
-  const DAY_TWO_LIVE_OVERRIDE = true;
+  const DAY_TWO_LIVE_OVERRIDE = false;
   // ================================================
 
   const REGISTRATION_DEADLINE = "2025-10-10T23:59:59";
@@ -23,7 +23,7 @@ export default function Hero() {
   const [isDayTwoLive, setIsDayTwoLive] = useState(false);
 
   const DAY_ONE_DATE = "2025-10-10";
-  const DAY_TWO_DATE = "2025-10-18";
+  const DAY_TWO_DATE = "2025-10-17";
   const DAY_ONE_ACTIVATION_TIME = "2025-10-11T09:00:00";
 
   const checkLiveStatus = useCallback(() => {
@@ -78,7 +78,6 @@ export default function Hero() {
     return () => clearInterval(timer);
   }, [REGISTRATION_DEADLINE, checkLiveStatus]);
 
-
   // 🔐 Password-protected navigation for Day One
   const handleDayOneClick = (e) => {
     e.preventDefault();
@@ -129,8 +128,6 @@ export default function Hero() {
         position: 'relative'
       }}
     >
-      
-
       <p
         style={{
           fontSize: '1.8rem',
@@ -216,7 +213,6 @@ export default function Hero() {
               flexWrap: 'wrap',
               fontFamily: "'Orbitron', sans-serif",
               letterSpacing: '1.5px',
-              transition: 'font-size 0.3s ease',
               color: '#FF2A6D',
               textShadow: '0 0 4px rgba(214, 34, 70, 0.5), 0 0 8px rgba(214, 34, 70, 0.3)'
             }}
@@ -263,7 +259,6 @@ export default function Hero() {
         </div>
       ) : (
         <div style={{ width: '100%', maxWidth: '800px' }}>
-          {/* SEASON 2 COMING SOON SECTION */}
           <div
             style={{
               padding: '2.5rem 1.5rem',
@@ -280,7 +275,7 @@ export default function Hero() {
               className="neon-text"
               style={{
                 fontSize: '2.8rem',
-                fontFamily: "'Orbitron', sans-serif",
+                fontFamily: "'Orbitron', sans-serif'",
                 marginBottom: '1rem',
                 color: '#FF2A6D',
                 textShadow: '0 0 8px rgba(255, 42, 109, 0.7)',
@@ -292,7 +287,7 @@ export default function Hero() {
             <div
               style={{
                 fontSize: '1.8rem',
-                fontFamily: "'Orbitron', sans-serif",
+                fontFamily: "'Orbitron', sans-serif'",
                 color: '#FF2A6D',
                 textShadow: '0 0 6px rgba(255, 42, 109, 0.5)',
                 letterSpacing: '3px'
@@ -339,9 +334,8 @@ export default function Hero() {
           style={{
             fontSize: '2.2rem',
             marginBottom: '2rem',
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "'Orbitron', sans-serif'",
             letterSpacing: '1.5px',
-            transition: 'font-size 0.3s ease',
             color: '#FF2A6D',
             textShadow: '0 0 4px rgba(214, 34, 70, 0.5), 0 0 8px rgba(214, 34, 70, 0.3)'
           }}
@@ -358,15 +352,25 @@ export default function Hero() {
             color: '#FF2A6D',
           }}
         >
+          {/* Day One */}
           <div style={{ width: '320px' }}>
-            <div
-              onClick={isDayOneLive ? handleDayOneClick : undefined}
-              style={{
-                cursor: isDayOneLive ? 'pointer' : 'not-allowed',
-                opacity: isDayOneLive ? 1 : 0.5,
-                pointerEvents: isDayOneLive ? 'auto' : 'none'
-              }}
-            >
+            {isDayOneLive ? (
+              <div onClick={handleDayOneClick} style={{ cursor: 'pointer' }}>
+                <EventCard
+                  day="October 11, 2025"
+                  title={
+                    <>
+                      <span>DAY ONE:</span>
+                      <br />
+                      THE INITIAL PROTOCOL
+                    </>
+                  }
+                  link="#"
+                  isLive={true}
+                  isEnded={false}
+                />
+              </div>
+            ) : (
               <EventCard
                 day="October 11, 2025"
                 title={
@@ -377,43 +381,27 @@ export default function Hero() {
                   </>
                 }
                 link="#"
-                isLive={isDayOneLive}
+                isLive={false}
                 isEnded={isDayOneEnded()}
               />
-            </div>
-            {!isDayOneLive && !isDayOneEnded() && (
-              <p style={{ color: '#aaa', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                {new Date() < new Date(DAY_ONE_ACTIVATION_TIME) ? "Activates at 9:00 AM" : "Coming soon"}
-              </p>
             )}
           </div>
 
+          {/* Day Two */}
           <div style={{ width: '320px' }}>
-            <a
-              href={isDayTwoLive ? "/day2" : "#"}
-              style={{
-                textDecoration: 'none',
-                cursor: isDayTwoLive ? 'pointer' : 'not-allowed',
-                opacity: isDayTwoLive ? 1 : 0.5,
-                pointerEvents: isDayTwoLive ? 'auto' : 'none',
-                display: 'block',
-                color: '#FF2A6D',
-              }}
-            >
-              <EventCard
-                day="October 18, 2025"
-                title={
-                  <>
-                    <span>DAY TWO:</span>
-                    <br />
-                    THE FINAL PROTOCOL
-                  </>
-                }
-                link={isDayTwoLive ? "/day2" : "#"}
-                isLive={isDayTwoLive}
-                isEnded={isDayTwoEnded()}
-              />
-            </a>
+            <EventCard
+              day="October 18, 2025"
+              title={
+                <>
+                  <span>DAY TWO:</span>
+                  <br />
+                  THE FINAL PROTOCOL
+                </>
+              }
+              link="/day2"
+              isLive={isDayTwoLive}
+              isEnded={isDayTwoEnded()}
+            />
           </div>
         </div>
       </div>
