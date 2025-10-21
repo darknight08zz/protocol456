@@ -5,9 +5,9 @@ import React, { useState, useEffect } from 'react';
 const day1Images = Array.from({ length: 16 }, (_, i) => `/images/day1/${i + 1}`);
 const day2Images = Array.from({ length: 15 }, (_, i) => `/images/day2/${i + 1}`);
 
-// Helper component to try multiple image extensions
-const MultiExtImage = ({ basePath, alt, style }) => {
-  const extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif','.JPG', '.JPEG', '.PNG', '.WEBP', '.GIF'];
+// Helper component to try multiple image extensions AND report success
+const MultiExtImage = ({ basePath, alt, style, onImageLoaded }) => {
+  const extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.JPG', '.JPEG', '.PNG', '.WEBP', '.GIF'];
   const [currentExtIndex, setCurrentExtIndex] = useState(0);
   const [src, setSrc] = useState(basePath + extensions[0]);
 
@@ -17,7 +17,11 @@ const MultiExtImage = ({ basePath, alt, style }) => {
       setCurrentExtIndex(nextIndex);
       setSrc(basePath + extensions[nextIndex]);
     }
-    // If all fail, image remains broken (browser handles it)
+  };
+
+  const handleLoad = () => {
+    // Notify parent that this image loaded successfully
+    onImageLoaded?.(src);
   };
 
   return (
@@ -27,6 +31,7 @@ const MultiExtImage = ({ basePath, alt, style }) => {
       style={style}
       loading="lazy"
       onError={handleError}
+      onLoad={handleLoad}
     />
   );
 };
@@ -35,12 +40,14 @@ export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const openLightbox = (basePath) => {
-    // Try to open with the most common extension first (.jpg)
-    // In a real app, you could store the successfully loaded path,
-    // but for simplicity and consistency, we use .jpg as lightbox fallback.
+  // Track successfully loaded image URLs per card
+  const [loadedImageUrls, setLoadedImageUrls] = useState({});
+
+  const openLightbox = (imageKey) => {
+    const url = loadedImageUrls[imageKey];
+    if (!url) return; // shouldn't happen, but safety
     setIsLoading(true);
-    setSelectedImage(basePath + '.jpg');
+    setSelectedImage(url);
   };
 
   const closeLightbox = () => {
@@ -83,75 +90,85 @@ export default function Gallery() {
           padding: '0 1rem'
         }}
       >
-        {basePaths.map((basePath, i) => (
-          <div
-            key={`${dayLabel}-${i}`}
-            onClick={() => openLightbox(basePath)}
-            style={{
-              aspectRatio: '4/3',
-              backgroundColor: 'rgba(10, 15, 25, 0.7)',
-              border: '1px solid rgba(255, 42, 109, 0.3)',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              cursor: 'zoom-in',
-              position: 'relative',
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.03)';
-              e.currentTarget.style.borderColor = 'rgba(255, 42, 109, 0.6)';
-              e.currentTarget.style.boxShadow = '0 0 15px rgba(255, 42, 109, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.borderColor = 'rgba(255, 42, 109, 0.3)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <MultiExtImage
-              basePath={basePath}
-              alt={`${dayLabel} - Photo ${i + 1}`}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block'
-              }}
-            />
+        {basePaths.map((basePath, i) => {
+          const imageKey = `${dayLabel}-${i}`; // unique key for tracking
 
-            {/* Hover overlay */}
+          return (
             <div
+              key={imageKey}
+              onClick={() => openLightbox(imageKey)}
               style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 70%)',
-                opacity: 0,
-                transition: 'opacity 0.3s ease',
-                pointerEvents: 'none'
+                aspectRatio: '4/3',
+                backgroundColor: 'rgba(10, 15, 25, 0.7)',
+                border: '1px solid rgba(255, 42, 109, 0.3)',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                cursor: 'zoom-in',
+                position: 'relative',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
               }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '10px',
-                left: 0,
-                width: '100%',
-                textAlign: 'center',
-                color: '#FF2A6D',
-                fontFamily: "'Orbitron', sans-serif",
-                fontSize: '0.9rem',
-                opacity: 0,
-                transition: 'opacity 0.3s ease',
-                pointerEvents: 'none'
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 42, 109, 0.6)';
+                e.currentTarget.style.boxShadow = '0 0 15px rgba(255, 42, 109, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.borderColor = 'rgba(255, 42, 109, 0.3)';
+                e.currentTarget.style.boxShadow = 'none';
               }}
             >
-              VIEW
+              <MultiExtImage
+                basePath={basePath}
+                alt={`${dayLabel} - Photo ${i + 1}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block'
+                }}
+                onImageLoaded={(url) => {
+                  setLoadedImageUrls(prev => ({
+                    ...prev,
+                    [imageKey]: url
+                  }));
+                }}
+              />
+
+              {/* Hover overlay */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 70%)',
+                  opacity: 0,
+                  transition: 'opacity 0.3s ease',
+                  pointerEvents: 'none'
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  left: 0,
+                  width: '100%',
+                  textAlign: 'center',
+                  color: '#FF2A6D',
+                  fontFamily: "'Orbitron', sans-serif",
+                  fontSize: '0.9rem',
+                  opacity: 0,
+                  transition: 'opacity 0.3s ease',
+                  pointerEvents: 'none'
+                }}
+              >
+                VIEW
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {basePaths.length === 0 && (
           <p
             style={{
