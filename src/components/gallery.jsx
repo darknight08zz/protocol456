@@ -7,7 +7,7 @@ const day2Images = Array.from({ length: 15 }, (_, i) => `/images/day2/${i + 1}`)
 
 // Helper component to try multiple image extensions
 const MultiExtImage = ({ basePath, alt, style }) => {
-  const extensions = ['.jpg', '.jpeg', '.png', '.webp'];
+  const extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif','.JPG', '.JPEG', '.PNG', '.WEBP', '.GIF'];
   const [currentExtIndex, setCurrentExtIndex] = useState(0);
   const [src, setSrc] = useState(basePath + extensions[0]);
 
