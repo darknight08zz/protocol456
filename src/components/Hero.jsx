@@ -18,7 +18,7 @@ export default function Hero() {
     seconds: '00'
   });
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
-  
+
   const [isDayOneLive, setIsDayOneLive] = useState(false);
   const [isDayTwoLive, setIsDayTwoLive] = useState(false);
 
@@ -30,14 +30,14 @@ export default function Hero() {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
     const activationTime = new Date(DAY_ONE_ACTIVATION_TIME);
-    
+
     const dayOneLive = DAY_ONE_LIVE_OVERRIDE || (
-      today === DAY_ONE_DATE && 
+      today === DAY_ONE_DATE &&
       now >= activationTime
     );
-    
+
     const dayTwoLive = DAY_TWO_LIVE_OVERRIDE || today === DAY_TWO_DATE;
-    
+
     setIsDayOneLive(dayOneLive);
     setIsDayTwoLive(dayTwoLive);
   }, [DAY_ONE_LIVE_OVERRIDE, DAY_TWO_LIVE_OVERRIDE, DAY_ONE_DATE, DAY_TWO_DATE, DAY_ONE_ACTIVATION_TIME]);
@@ -69,7 +69,7 @@ export default function Hero() {
 
     checkLiveStatus();
     setTimeLeft(calculateTimeLeft());
-    
+
     const timer = setInterval(() => {
       checkLiveStatus();
       setTimeLeft(calculateTimeLeft());
@@ -93,7 +93,7 @@ export default function Hero() {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
     const activationTime = new Date(DAY_ONE_ACTIVATION_TIME);
-    
+
     if (today > DAY_ONE_DATE) {
       return true;
     } else if (today === DAY_ONE_DATE && now >= activationTime) {
@@ -104,7 +104,7 @@ export default function Hero() {
 
   const isDayTwoEnded = () => {
     const today = new Date().toISOString().split('T')[0];
-    
+
     if (today > DAY_TWO_DATE) {
       return true;
     } else if (today === DAY_TWO_DATE) {
@@ -112,6 +112,28 @@ export default function Hero() {
     }
     return false;
   };
+
+  // 🏆 Real winner data with correct public image paths
+  const winners = [
+    {
+      id: 1,
+      name: "Adya Bramha Samantroy",
+      university: "Odisha University of Technology and Research, Bhubaneswar",
+      photo: "/Adya_Bramha.webp"
+    },
+    {
+      id: 2,
+      name: "Satwik Roy",
+      university: "XIM University, Bhubaneswar",
+      photo: "/Satwik_Roy.png"
+    },
+    {
+      id: 3,
+      name: "Manish Ghatuary",
+      university: "XIM University, Bhubaneswar",
+      photo: "/Manish.jpg"
+    }
+  ];
 
   return (
     <section
@@ -402,6 +424,205 @@ export default function Hero() {
               isLive={isDayTwoLive}
               isEnded={isDayTwoEnded()}
             />
+          </div>
+        </div>
+
+        {/* 🏆 WINNERS SECTION TITLE */}
+        <h2
+          style={{
+            fontSize: '2.2rem',
+            marginTop: '4rem',
+            marginBottom: '1.8rem',
+            fontFamily: "'Orbitron', sans-serif",
+            letterSpacing: '1.5px',
+            color: '#FF2A6D',
+            textAlign: 'center'
+          }}
+        >
+          WINNER
+        </h2>
+
+        {/* 🏆 Winners Section */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+            gap: '2rem',
+            marginBottom: '3rem'
+          }}
+        >
+          {/* Winner (1st Place) */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: 'rgba(20, 25, 35, 0.6)',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              border: '1px solid #444',
+              maxWidth: '300px',
+              width: '100%',
+              transition: 'transform 0.2s ease, border-color 0.2s ease',
+              cursor: 'default'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.borderColor = '#555';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = '#444';
+            }}
+          >
+            <img
+              src={winners[0].photo}
+              alt="Winner"
+              onError={(e) => {
+                e.target.src = "  https://via.placeholder.com/120/333/FFFFFF?text=No+Image";
+              }}
+              style={{
+                width: '120px',
+                height: '120px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid #FFD700',
+                marginBottom: '1rem'
+              }}
+            />
+            <h3
+              style={{
+                color: '#fff',
+                margin: '0.3rem 0',
+                fontSize: '1.4rem',
+                fontFamily: "'Orbitron', sans-serif"
+              }}
+            >
+              {winners[0].name}
+            </h3>
+            <p
+              style={{
+                color: '#bbb',
+                margin: 0,
+                fontSize: '1rem',
+                fontStyle: 'italic'
+              }}
+            >
+              {winners[0].university}
+            </p>
+            <div
+              style={{
+                marginTop: '0.5rem',
+                color: '#FFD700',
+                fontWeight: 'bold',
+                fontSize: '1.1rem'
+              }}
+            >
+              🥇 Winner
+            </div>
+          </div>
+
+          {/* Runner-ups Title */}
+          <h3
+            style={{
+              fontSize: '1.8rem',
+              fontFamily: "'Orbitron', sans-serif",
+              letterSpacing: '1.2px',
+              color: '#FF2A6D',
+              textAlign: 'center',
+              width: '100%',
+              marginTop: '-0.5rem',
+              marginBottom: '1rem'
+            }}
+          >
+            Runner-ups
+          </h3>
+
+          {/* Runner-ups (2nd & 3rd) side by side */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '1.5rem',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              width: '100%',
+              maxWidth: '650px'
+            }}
+          >
+            {[1, 2].map((index) => (
+              <div
+                key={index}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  background: 'rgba(25, 30, 40, 0.6)',
+                  borderRadius: '10px',
+                  padding: '1.2rem',
+                  border: '1px solid #444',
+                  maxWidth: '220px',
+                  width: '100%',
+                  transition: 'transform 0.2s ease, border-color 0.2s ease',
+                  cursor: 'default'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.borderColor = '#555';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = '#444';
+                }}
+              >
+                <img
+                  src={winners[index].photo}
+                  alt={`Runner-up ${index}`}
+                  onError={(e) => {
+                    e.target.src = "  https://via.placeholder.com/100/333/FFFFFF?text=No+Image";
+                  }}
+                  style={{
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: index === 1 ? '2px solid #C0C0C0' : '2px solid #CD7F32',
+                    marginBottom: '0.8rem'
+                  }}
+                />
+                <h4
+                  style={{
+                    color: '#fff',
+                    margin: '0.2rem 0',
+                    fontSize: '1.2rem',
+                    fontFamily: "'Orbitron', sans-serif"
+                  }}
+                >
+                  {winners[index].name}
+                </h4>
+                <p
+                  style={{
+                    color: '#aaa',
+                    margin: 0,
+                    fontSize: '0.95rem',
+                    fontStyle: 'italic'
+                  }}
+                >
+                  {winners[index].university}
+                </p>
+                <div
+                  style={{
+                    marginTop: '0.4rem',
+                    color: index === 1 ? '#C0C0C0' : '#CD7F32',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}
+                >
+                  {index === 1 ? '🥈 1st Runner-up' : '🥉 2nd Runner-up'}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

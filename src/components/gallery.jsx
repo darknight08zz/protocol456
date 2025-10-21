@@ -1,8 +1,9 @@
 // src/components/Gallery.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Placeholder image paths (replace with your actual image imports/URLs)
-const placeholderImages = Array(8).fill(null).map((_, i) => `/event-photos/photo-${i + 1}.jpg`);
+// Generate image paths for Day 1 (1.jpg to 15.jpg)
+const day1Images = Array.from({ length: 16 }, (_, i) => `/images/day1/${i + 1}.jpg`);
+const day2Images = Array.from({ length: 15 }, (_, i) => `/images/day2/${i + 1}.jpg`);
 
 export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -19,7 +20,7 @@ export default function Gallery() {
   };
 
   // Handle keyboard navigation
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') closeLightbox();
     };
@@ -27,38 +28,22 @@ export default function Gallery() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  return (
-    <section
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        padding: '4rem 2rem',
-        backgroundColor: '#05080c',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
-      {/* Glowing "EVENT GALLERY" Header */}
-      <div
-        className="neon-text"
+  // Render a grid of images for a given day
+  const renderImageGrid = (images, dayLabel) => (
+    <>
+      <h2
         style={{
-          fontSize: '3.5rem',
+          fontSize: '2.2rem',
           fontFamily: "'Orbitron', sans-serif",
-          marginBottom: '3rem',
           color: '#FF2A6D',
-          textShadow: '0 0 10px rgba(255, 42, 109, 0.8), 0 0 20px rgba(255, 42, 109, 0.6)',
-          letterSpacing: '3px',
-          position: 'relative',
-          zIndex: 2
+          margin: '2.5rem 0 1.5rem',
+          textShadow: '0 0 8px rgba(255, 42, 109, 0.7)',
+          width: '100%',
+          textAlign: 'center',
         }}
       >
-        EVENT GALLERY
-      </div>
-
-      {/* Image Grid */}
+        {dayLabel}
+      </h2>
       <div
         style={{
           display: 'grid',
@@ -69,9 +54,9 @@ export default function Gallery() {
           padding: '0 1rem'
         }}
       >
-        {placeholderImages.map((imgSrc, i) => (
+        {images.map((imgSrc, i) => (
           <div
-            key={i}
+            key={`${dayLabel}-${i}`}
             onClick={() => openLightbox(imgSrc)}
             style={{
               aspectRatio: '4/3',
@@ -94,23 +79,18 @@ export default function Gallery() {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            {/* Placeholder content (replace with <img> when you have real images) */}
-            <div
+            <img
+              src={imgSrc}
+              alt={`${dayLabel} - Photo ${i + 1}`}
               style={{
                 width: '100%',
                 height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#aaa',
-                fontSize: '1.1rem',
-                fontFamily: "'Roboto', sans-serif'",
-                backgroundColor: 'rgba(5, 8, 12, 0.8)'
+                objectFit: 'cover',
+                display: 'block'
               }}
-            >
-              Event Photo {i + 1}
-            </div>
-            
+              loading="lazy"
+            />
+
             {/* Hover overlay */}
             <div
               style={{
@@ -144,7 +124,59 @@ export default function Gallery() {
             </div>
           </div>
         ))}
+        {images.length === 0 && (
+          <p
+            style={{
+              gridColumn: '1 / -1',
+              color: '#aaa',
+              fontStyle: 'italic',
+              textAlign: 'center',
+              padding: '2rem'
+            }}
+          >
+            No photos available for {dayLabel} yet.
+          </p>
+        )}
       </div>
+    </>
+  );
+
+  return (
+    <section
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        padding: '4rem 2rem',
+        backgroundColor: '#05080c',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Glowing "EVENT GALLERY" Header */}
+      <div
+        className="neon-text"
+        style={{
+          fontSize: '3.5rem',
+          fontFamily: "'Orbitron', sans-serif",
+          marginBottom: '2rem',
+          color: '#FF2A6D',
+          textShadow: '0 0 10px rgba(255, 42, 109, 0.8), 0 0 20px rgba(255, 42, 109, 0.6)',
+          letterSpacing: '3px',
+          position: 'relative',
+          zIndex: 2
+        }}
+      >
+        EVENT GALLERY
+      </div>
+
+      {/* Day 1 Section */}
+      {renderImageGrid(day1Images, 'DAY 1')}
+
+      {/* Day 2 Section */}
+      {renderImageGrid(day2Images, 'DAY 2')}
 
       {/* Decorative Grid Lines */}
       <div
@@ -237,33 +269,19 @@ export default function Gallery() {
               overflow: 'hidden'
             }}
           >
-            {/* Replace placeholder with actual <img> when ready */}
-            <div
-              style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain',
-                display: isLoading ? 'none' : 'block'
-              }}
+            <img
+              src={selectedImage}
+              alt="Enlarged view"
               onLoad={() => setIsLoading(false)}
-            >
-              <div
-                style={{
-                  width: '80vw',
-                  height: '80vh',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#aaa',
-                  fontSize: '1.5rem',
-                  fontFamily: "'Roboto', sans-serif",
-                  backgroundColor: 'rgba(10, 15, 25, 0.8)',
-                  border: '1px solid rgba(255, 42, 109, 0.3)'
-                }}
-              >
-                Full-size preview of: {selectedImage}
-              </div>
-            </div>
+              style={{
+                maxWidth: '90vw',
+                maxHeight: '90vh',
+                objectFit: 'contain',
+                display: isLoading ? 'none' : 'block',
+                border: '1px solid rgba(255, 42, 109, 0.3)',
+                borderRadius: '4px'
+              }}
+            />
           </div>
         </div>
       )}
